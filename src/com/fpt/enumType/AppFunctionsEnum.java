@@ -1,4 +1,4 @@
-package com.fpt.app;
+package com.fpt.enumType;
 
 public enum AppFunctionsEnum {
     CREATE_FILE_FOLDER("createFileFolder",  "createFileFolder createFileFolder",   true),

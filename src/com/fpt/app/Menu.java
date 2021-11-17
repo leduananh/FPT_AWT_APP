@@ -1,5 +1,7 @@
 package com.fpt.app;
 
+import com.fpt.enumType.AppFunctionsEnum;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +25,12 @@ public class Menu {
         for (int i = 0; i < functions.size(); i++) {
             int lineIndex = i + 1;
             String line = lineIndex + ". " + functions.get(i).getFunctionDescription();
+            System.out.println(line);
         }
+    }
+
+    public String getFunctionNameByIndex(int index) {
+        return functions.get(index).getFunctionName();
     }
 
 }
