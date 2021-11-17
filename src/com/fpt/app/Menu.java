@@ -33,4 +33,8 @@ public class Menu {
         return functions.get(index).getFunctionName();
     }
 
+    public int getFunctionSize(){
+        return functions.size();
+    }
+
 }
