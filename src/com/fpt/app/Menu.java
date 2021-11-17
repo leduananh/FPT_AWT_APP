@@ -23,9 +23,12 @@ public class Menu {
         System.out.println(TITLE + "\n");
 
         for (int i = 0; i < functions.size(); i++) {
-            int lineIndex = i + 1;
-            String line = lineIndex + ". " + functions.get(i).getFunctionDescription();
-            System.out.println(line);
+            AppFunctionsEnum function = functions.get(i);
+            if (function.isUsed()) {
+                int lineIndex = i + 1;
+                String line = lineIndex + ". " + function.getFunctionDescription();
+                System.out.println(line);
+            }
         }
     }
 
@@ -33,7 +36,7 @@ public class Menu {
         return functions.get(index).getFunctionName();
     }
 
-    public int getFunctionSize(){
+    public int getFunctionSize() {
         return functions.size();
     }
 
