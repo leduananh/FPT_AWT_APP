@@ -16,19 +16,16 @@ public class Menu {
 
     Menu(String title) {
         this.TITLE = title;
-        functions = Arrays.stream(AppFunctionsEnum.values()).collect(Collectors.toList());
+        functions = Arrays.stream(AppFunctionsEnum.values()).collect(Collectors.toList()).stream().filter(appFunctionsEnum -> appFunctionsEnum.isUsed()).collect(Collectors.toList());
     }
 
     public void show() {
         System.out.println(TITLE + "\n");
 
         for (int i = 0; i < functions.size(); i++) {
-            AppFunctionsEnum function = functions.get(i);
-            if (function.isUsed()) {
-                int lineIndex = i + 1;
-                String line = lineIndex + ". " + function.getFunctionDescription();
-                System.out.println(line);
-            }
+            int lineIndex = i + 1;
+            String line = lineIndex + ". " + functions.get(i).getFunctionDescription();
+            System.out.println(line);
         }
     }
 

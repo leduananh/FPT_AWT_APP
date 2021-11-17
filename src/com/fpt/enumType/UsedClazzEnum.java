@@ -1,7 +1,9 @@
 package com.fpt.enumType;
 
+import com.fpt.service.FileFolderCrudServiceImpl;
+
 public enum UsedClazzEnum {
-    FILE_FOLDER_CRUD("FileFolderCrudService",  "com.fpt.service.AppFunctionServiceImpl",   true),
+    FILE_FOLDER_CRUD("FileFolderCrudService", FileFolderCrudServiceImpl.class.getName(), true),
     ;
 
     private final String clazzName;

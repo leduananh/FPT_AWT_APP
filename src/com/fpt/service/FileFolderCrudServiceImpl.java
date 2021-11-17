@@ -1,19 +1,51 @@
 package com.fpt.service;
 
-import org.apache.commons.io.FileUtils;
+import com.fpt.folderHandleLib.FileFolderCrudLib;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.Scanner;
+import java.util.regex.Pattern;
 
-public class FileFolderCrudServiceImpl implements  FileFolderCrudService{
+public class FileFolderCrudServiceImpl implements FileFolderCrudService {
+    private final Scanner scanner = new Scanner(System.in);
+
     @Override
     public void createFileFolder() {
-        System.out.println("create new file/folder from (path) with response status (undefined)");
-
+        String sourcePath = readText("input text sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
+        boolean isCreated = FileFolderCrudLib.createFileFolder(sourcePath);
+        System.out.println("respond status: " + isCreated);
     }
 
     @Override
     public void moveFileFolder() {
         System.out.println("moveFileFolder");
+    }
+
+    private String readText(String request) {
+        String input = null;
+        while (true) {
+            try {
+                printRequest(request);
+                input = scanner.nextLine();
+                if (input.isEmpty())
+                    throw new Exception("do not empty...");
+                else if (isNumeric(input))
+                    throw new Exception("only text...");
+                break;
+            } catch (Exception e) {
+                System.out.println("error: " + e.getMessage());
+            }
+        }
+        return input;
+    }
+
+    private void printRequest(String request) {
+        System.out.print("+ " + request);
+    }
+
+    private boolean isNumeric(String strNum) {
+        Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+        if (strNum == null)
+            return false;
+        return pattern.matcher(strNum).matches();
     }
 }

@@ -18,10 +18,13 @@ public class FileFolderCrudLib {
             File sourceFile = new File(processedSourcePath);
 
             if (sourceFile.isDirectory()) {
+                System.out.println("create folder: "+ sourceFile.getPath());
                 Files.createParentDirs(sourceFile);
                 if (sourceFile.isFile())
+                    System.out.println("create file: "+ sourceFile.getPath());
                     Files.touch(sourceFile);
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
