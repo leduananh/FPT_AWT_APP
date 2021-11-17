@@ -56,6 +56,18 @@ public class FileFolderCrudLib {
         return isMoved;
     }
 
+    public static boolean checkFileFolderExists(String sourcePath) {
+        boolean isExist = false;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            isExist = sourceFile.exists();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isExist;
+    }
+
     private static boolean isPathAbsolute(String path) {
         return Paths.get(path).isAbsolute();
     }

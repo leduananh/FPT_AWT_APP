@@ -10,17 +10,24 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
 
     @Override
     public void createFileFolder() {
-        String sourcePath = readText("input your sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
+        String sourcePath = readText("input your sourcePath to create file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
         boolean isCreated = FileFolderCrudLib.createFileFolder(sourcePath);
         System.out.println("respond status: " + isCreated);
     }
 
     @Override
     public void moveFileFolder() {
-        String sourcePath = readText("input your sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
-        String targetPath = readText("input your targetPath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
-        boolean isCreated = FileFolderCrudLib.moveFileFolder(sourcePath,targetPath);
-        System.out.println("respond status: " + isCreated);
+        String sourcePath = readText("input your sourcePath to create file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
+        String targetPath = readText("input your targetPath to create file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
+        boolean isMoved = FileFolderCrudLib.moveFileFolder(sourcePath,targetPath);
+        System.out.println("respond status: " + isMoved);
+    }
+
+    @Override
+    public void checkFileFolderExist() {
+        String sourcePath = readText("input your sourcePath to create file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
+        boolean isExist = FileFolderCrudLib.checkFileFolderExists(sourcePath);
+        System.out.println("respond status: " + isExist);
     }
 
     private String readText(String request) {
