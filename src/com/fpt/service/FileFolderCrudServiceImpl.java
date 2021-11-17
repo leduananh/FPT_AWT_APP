@@ -1,6 +1,6 @@
 package com.fpt.service;
 
-public class AppFunctionServiceImpl implements  FileFolderCrudService{
+public class FileFolderCrudServiceImpl implements  FileFolderCrudService{
     @Override
     public void createFileFolder() {
         System.out.println("createFileFolder");

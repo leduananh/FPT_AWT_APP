@@ -21,7 +21,7 @@ public class ConsoleApp {
     }
 
     public void start() {
-        while (true){
+        while (true) {
             this.appMenu.show();
             String functionName = readUserInput();
             methodInvoke(functionName);
@@ -32,7 +32,7 @@ public class ConsoleApp {
         String functionName = null;
         Scanner scanner = new Scanner(System.in);
         while (true) {
-            System.out.println(REQUEST_INPUT_TITLE);
+            System.out.print(REQUEST_INPUT_TITLE);
             try {
                 int menuIndex = scanner.nextInt();
                 if (menuIndex > this.appMenu.getFunctionSize())
@@ -52,7 +52,7 @@ public class ConsoleApp {
             String packageName = findPackageWithMethodName(methodName);
             Class clazz = Class.forName(packageName);
             Method method = clazz.getMethod(methodName);
-            method.invoke(clazz.getConstructor(clazz).newInstance());
+            method.invoke(clazz.getConstructor().newInstance());
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
