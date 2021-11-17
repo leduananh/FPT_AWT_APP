@@ -35,11 +35,21 @@ public class FileFolderCrudLib {
             String processedTargetPath = isPathAbsolute(targetPath) ? sourcePath : toAbsolute(targetPath);
             File sourceFile = new File(processedSourcePath);
             File targetFile = new File(processedTargetPath);
-            if (sourceFile.exists() && sourceFile.isDirectory() && targetFile.exists() && targetFile.isDirectory()) {
-                //move folder
-                FileUtils.m
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile() && targetFile.exists() && targetFile.isFile()) {
+                    //move file to dir
+                    FileUtils.moveFile(sourceFile, targetFile);
+                    isMoved = true;
+                } else if (sourceFile.isFile() && targetFile.exists() && targetFile.isDirectory()) {
+                    //move file to dir
+                    FileUtils.moveFileToDirectory(sourceFile, targetFile, true);
+                    isMoved = true;
+                } else if (sourceFile.isDirectory() && targetFile.exists() && targetFile.isDirectory()) {
+                    //move dir to dir
+                    FileUtils.moveDirectoryToDirectory(sourceFile, targetFile, true);
+                    isMoved = true;
+                }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

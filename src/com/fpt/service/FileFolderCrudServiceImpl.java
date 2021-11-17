@@ -19,8 +19,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     public void moveFileFolder() {
         String sourcePath = readText("input your sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
         String targetPath = readText("input your targetPath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
-
-        boolean isCreated = FileFolderCrudLib.createFileFolder(sourcePath);
+        boolean isCreated = FileFolderCrudLib.moveFileFolder(sourcePath,targetPath);
         System.out.println("respond status: " + isCreated);
     }
 
