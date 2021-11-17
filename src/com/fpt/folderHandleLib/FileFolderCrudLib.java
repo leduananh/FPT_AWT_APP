@@ -14,22 +14,36 @@ public class FileFolderCrudLib {
         boolean isCreated = false;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-
             File sourceFile = new File(processedSourcePath);
-
-            if (sourceFile.isDirectory()) {
-                System.out.println("create folder: "+ sourceFile.getPath());
+            if (isFile(sourceFile.getName())) {
                 Files.createParentDirs(sourceFile);
-                if (sourceFile.isFile())
-                    System.out.println("create file: "+ sourceFile.getPath());
-                    Files.touch(sourceFile);
+                Files.touch(sourceFile);
+                isCreated = true;
+            } else {
+                isCreated = sourceFile.mkdirs();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isCreated;
+    }
+
+    public static boolean moveFileFolder(String sourcePath, String targetPath) {
+        boolean isMoved = false;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            String processedTargetPath = isPathAbsolute(targetPath) ? sourcePath : toAbsolute(targetPath);
+            File sourceFile = new File(processedSourcePath);
+            File targetFile = new File(processedTargetPath);
+            if (sourceFile.exists() && sourceFile.isDirectory() && targetFile.exists() && targetFile.isDirectory()) {
+                //move folder
+                FileUtils.m
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return isCreated;
+        return isMoved;
     }
 
     private static boolean isPathAbsolute(String path) {
@@ -38,5 +52,9 @@ public class FileFolderCrudLib {
 
     private static String toAbsolute(String path) {
         return Paths.get(path).toAbsolutePath().toString();
+    }
+
+    private static boolean isFile(String name) {
+        return name.indexOf(".") != -1;
     }
 }

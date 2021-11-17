@@ -10,14 +10,18 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
 
     @Override
     public void createFileFolder() {
-        String sourcePath = readText("input text sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
+        String sourcePath = readText("input your sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
         boolean isCreated = FileFolderCrudLib.createFileFolder(sourcePath);
         System.out.println("respond status: " + isCreated);
     }
 
     @Override
     public void moveFileFolder() {
-        System.out.println("moveFileFolder");
+        String sourcePath = readText("input your sourcePath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
+        String targetPath = readText("input your targetPath to create file/folder \n is relative path or absolute path included parent directory and file name with format extension: ");
+
+        boolean isCreated = FileFolderCrudLib.createFileFolder(sourcePath);
+        System.out.println("respond status: " + isCreated);
     }
 
     private String readText(String request) {
