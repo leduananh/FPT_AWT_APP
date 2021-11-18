@@ -76,14 +76,14 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void appendFileContent() {
         String newData = readText("input your new data to append to source file: ");
-        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to append new data: ");
         boolean isAppend = FileFolderLib.appendFileContent(newData, sourcePath);
         System.out.println("respond status: " + isAppend);
     }
 
     @Override
     public void readFileData() {
-        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to read: ");
         String data = FileFolderLib.readFileData(sourcePath);
         System.out.println("respond data: " + data);
     }
@@ -91,9 +91,24 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void writeDataToFile() {
         String newData = readText("input your new data to append to source file: ");
-        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to write: ");
         boolean isWrite = FileFolderLib.writeDataToFile(newData, sourcePath);
         System.out.println("respond status: " + isWrite);
+    }
+
+    @Override
+    public void overWriteFile() {
+        String newData = readText("input your new data to append to source file: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to over write: ");
+        boolean isWrite = FileFolderLib.writeDataToFile(newData, sourcePath);
+        System.out.println("respond status: " + isWrite);
+    }
+
+    @Override
+    public void getFileFolderSize() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get file/folder size: ");
+        String size = FileFolderLib.getFileFolderSize(sourcePath);
+        System.out.println(sourcePath + " size: " + size);
     }
 
     @Override

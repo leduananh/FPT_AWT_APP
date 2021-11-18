@@ -13,6 +13,8 @@ public enum AppFunctionsEnum {
     APPEND_FILE_CONTENT("appendFileContent", "append new content (newContent) to source file (sourcePath) with response data (undefined)", true),
     READ_FILE_DATA("readFileData", "read data from source file (sourcePath) with file data response in variable (undefined)", true),
     WRITE_DATA_TO_FILE("writeDataToFile", "write data (data)  to source file (sourcePath) with response status in variable (undefined)", true),
+    OVER_WRITE_FILE("overWriteFileData", "override new data (data) to file location (filePath) with response data in variable (undefined)", true),
+    FILE_FOLDER_SIZE("getFileFolderSize", "get file/folder size from (sourcePath) with size store in variable (undefined)", true),
     DELETE_FILE_FOLDER("deleteFileFolder", "delete file/folder from location (path) with response status (undefined)", false),
     ;
 

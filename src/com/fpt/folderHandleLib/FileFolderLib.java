@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -198,6 +200,22 @@ public class FileFolderLib {
         return isWrite;
     }
 
+    public static boolean overWriteFile(String newData, String sourcePath) {
+        boolean isOverWrite = false;
+        try {
+            newData = newData.trim();
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
+                FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                isOverWrite = true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isOverWrite;
+    }
+
     public static boolean appendFileContent(String newData, String sourcePath) {
         boolean isAppend = false;
         try {
@@ -251,6 +269,38 @@ public class FileFolderLib {
             e.printStackTrace();
         }
         return data;
+    }
+
+    public static String getFileFolderSize(String sourcePath) {
+        String size = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile()) // file size
+                    size = humanReadableByteCountBin(FileUtils.sizeOf(sourceFile));
+                else if (sourceFile.isDirectory()) // directory size
+                    size = humanReadableByteCountBin(FileUtils.sizeOfDirectory(sourceFile));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
+
+    private static String humanReadableByteCountBin(long bytes) {
+        long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
+        if (absB < 1024) {
+            return bytes + " B";
+        }
+        long value = absB;
+        CharacterIterator ci = new StringCharacterIterator("KMGTPE");
+        for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10) {
+            value >>= 10;
+            ci.next();
+        }
+        value *= Long.signum(bytes);
+        return String.format("%.1f %ciB", value / 1024.0, ci.current());
     }
 
     public static boolean deleteFileFolder(String sourcePath) {
