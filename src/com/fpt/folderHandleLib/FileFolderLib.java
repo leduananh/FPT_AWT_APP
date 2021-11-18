@@ -5,16 +5,28 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FileFolderLib {
-    private static final String separator = "\\";
+
+    private static final String SEPARATOR = "\\";
+    private static final Charset LIB_DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    private static final String LIB_DEFAULT_ZONE_ID = "Asia/Ho_Chi_Minh";
+    private static final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
+
 
     public static boolean createFileFolder(String sourcePath) {
         boolean isCreated = false;
@@ -152,7 +164,7 @@ public class FileFolderLib {
             File sourceFile = new File(processedSourcePath);
             File targetFile = new File(processedTargetPath);
             if (sourceFile.exists() && targetFile.exists() && sourceFile.isFile() && targetFile.isFile()) {
-                String data = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+                String data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
                 isMerge = appendFileContent(data, targetFile);
                 sourceFile.deleteOnExit();
             }
@@ -167,8 +179,8 @@ public class FileFolderLib {
         try {
             newData = newData.trim();
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
-                String currentData = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
-                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, StandardCharsets.UTF_8);
+                String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
+                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
             }
             isAppend = true;
         } catch (IOException e) {
@@ -185,12 +197,12 @@ public class FileFolderLib {
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists()) {
                 if (sourceFile.isFile() && !newData.isEmpty()) {
-                    FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                    FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
                     isWrite = true;
                 }
             } else {
                 if (createFileFolder(sourceFile)) {
-                    FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                    FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
                     isWrite = true;
                 }
             }
@@ -207,7 +219,7 @@ public class FileFolderLib {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
-                FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
                 isOverWrite = true;
             }
         } catch (IOException e) {
@@ -223,7 +235,7 @@ public class FileFolderLib {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
-                FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
             }
             isAppend = true;
         } catch (IOException e) {
@@ -253,7 +265,7 @@ public class FileFolderLib {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists() && sourceFile.isFile())
-                data = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+                data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -264,7 +276,7 @@ public class FileFolderLib {
         String data = null;
         try {
             if (sourceFile.exists() && sourceFile.isFile())
-                data = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+                data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -286,6 +298,47 @@ public class FileFolderLib {
             e.printStackTrace();
         }
         return size;
+    }
+
+    public static String getFileFolderAttribute(String sourcePath) {
+//        String size = null;
+//        try {
+//            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+//            if (checkFileFolderExists(processedSourcePath)) {
+//                BasicFileAttributeView basicView = java.nio.file.Files.getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class);
+//                BasicFileAttributes basicAttribs = basicView.readAttributes();
+//
+//                LocalDateTime localDateTime = basicAttribs.lastAccessTime()
+//                        .toInstant()
+//                        .atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID))
+//                        .toLocalDateTime();
+//                System.out.println(localDateTime.format(
+//                        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return size;
+        return null;
+    }
+
+    private static BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
+        BasicFileAttributes basicFileAttributes = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            if (checkFileFolderExists(processedSourcePath))
+                basicFileAttributes = java.nio.file.Files.getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class).readAttributes();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return basicFileAttributes;
+    }
+
+    private static String toDateStringFromFileTime(FileTime fileTime) {
+        return fileTime
+                .toInstant()
+                .atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID))
+                .toLocalDateTime().format(DateTimeFormatter.ofPattern(LIB_DEFAULT_DATE_TIME_PATTERN));
     }
 
     private static String humanReadableByteCountBin(long bytes) {
@@ -336,6 +389,6 @@ public class FileFolderLib {
     }
 
     private static String replaceFileFolderPathName(String path, String replaceName) {
-        return path.substring(0, path.lastIndexOf(separator) + 1) + replaceName;
+        return path.substring(0, path.lastIndexOf(SEPARATOR) + 1) + replaceName;
     }
 }

@@ -14,6 +14,7 @@ public interface FileFolderCrudService {
     public void readFileData();
     public void writeDataToFile();
     public void overWriteFile();
-    public void getFileFolderSize();
+    public void fileFolderSize();
+    public void fileFolderAttributes();
     public void deleteFileFolder();
 }

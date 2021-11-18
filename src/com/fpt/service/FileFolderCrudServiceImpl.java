@@ -105,10 +105,16 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     }
 
     @Override
-    public void getFileFolderSize() {
+    public void fileFolderSize() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get file/folder size: ");
         String size = FileFolderLib.getFileFolderSize(sourcePath);
         System.out.println(sourcePath + " size: " + size);
+    }
+
+    @Override
+    public void fileFolderAttributes() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get file/folder size: ");
+        FileFolderLib.getFileFolderAttribute(sourcePath);
     }
 
     @Override
