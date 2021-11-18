@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -102,7 +103,6 @@ public class FileFolderCrudLib {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             fileFolderNames = Stream.of(sourceFile.listFiles())
-//                    .filter(file -> !file.isDirectory())
                     .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
                     .collect(Collectors.toSet());
         } catch (Exception e) {
@@ -124,6 +124,52 @@ public class FileFolderCrudLib {
             e.printStackTrace();
         }
         return fileNames;
+    }
+
+    public static boolean mergeFileData(String sourcePath, String targetPath) {
+        boolean isMerge = false;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            String processedTargetPath = isPathAbsolute(targetPath) ? targetPath : toAbsolute(targetPath);
+            File sourceFile = new File(processedSourcePath);
+            File targetFile = new File(processedTargetPath);
+            if (sourceFile.exists() && targetFile.exists() && sourceFile.isFile() && targetFile.isFile()) {
+                String data = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+                isMerge = appendFileContent(data, targetFile);
+                sourceFile.deleteOnExit();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isMerge;
+    }
+
+    private static boolean appendFileContent(String newData, File sourceFile) {
+        boolean isAppend = false;
+        try {
+            newData = newData.trim();
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty())
+                FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+            isAppend = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isAppend;
+    }
+
+    public static boolean appendFileContent(String newData, String sourcePath) {
+        boolean isAppend = false;
+        try {
+            newData = newData.trim();
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty())
+                FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+            isAppend = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isAppend;
     }
 
     public static Set<String> listFolderNames(String sourcePath) {

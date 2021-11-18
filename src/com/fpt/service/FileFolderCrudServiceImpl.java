@@ -66,6 +66,22 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     }
 
     @Override
+    public void mergeFileData() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to merge: ");
+        String targetPath = readText("input your targetPath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to merge: ");
+        boolean isMerge = FileFolderCrudLib.mergeFileData(sourcePath, targetPath);
+        System.out.println("respond status: " + isMerge);
+    }
+
+    @Override
+    public void appendFileContent() {
+        String newData = readText("input your new data to append to source file: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        boolean isAppend = FileFolderCrudLib.appendFileContent(newData, sourcePath);
+        System.out.println("respond status: " + isAppend);
+    }
+
+    @Override
     public void deleteFileFolder() {
         String sourcePath = readText("input your sourcePath to delete file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
         boolean isRenamed = FileFolderCrudLib.deleteFileFolder(sourcePath);

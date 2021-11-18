@@ -9,5 +9,7 @@ public interface FileFolderCrudService {
     public void listFileNames();
     public void listFolderNames();
     public void listFilesDetail();
+    public void mergeFileData();
+    public void appendFileContent();
     public void deleteFileFolder();
 }
