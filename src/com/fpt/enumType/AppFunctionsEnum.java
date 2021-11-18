@@ -3,8 +3,9 @@ package com.fpt.enumType;
 public enum AppFunctionsEnum {
     CREATE_FILE_FOLDER("createFileFolder", "create new file/folder from (path) with response status (undefined)", true),
     MOVE_FILE_FOLDER("moveFileFolder", "move file/folder from location (sourcePath) to destination location (targetPath) with response status (undefined)", true),
-    CHECK_FILE_FOLDER_EXIST("checkFileFolderExists", "check file/folder from source location is exists with response status store in variable (undefined)", true),
-
+    CHECK_FILE_FOLDER_EXIST("checkFileFolderExist", "check file/folder from source location is exists with response status store in variable (undefined)", true),
+    RENAME_FILE_FOLDER("renameFileFolder", "rename file/folder from location (path) to new (newName) with response status (undefined)", true),
+    DELETE_FILE_FOLDER("deleteFileFolder", "delete file/folder from location (path) with response status (undefined)", false),
     ;
 
     private final String functionName;

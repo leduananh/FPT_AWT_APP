@@ -7,15 +7,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 public class FileFolderCrudLib {
+    private static final String separator = "\\";
 
     public static boolean createFileFolder(String sourcePath) {
         boolean isCreated = false;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            if (isFile(sourceFile.getName())) {
+            if (isFile(sourceFile.getName(), true)) {
                 Files.createParentDirs(sourceFile);
                 Files.touch(sourceFile);
                 isCreated = true;
@@ -68,6 +70,48 @@ public class FileFolderCrudLib {
         return isExist;
     }
 
+    public static boolean renameFileFolder(String sourcePath, String newName) {
+        boolean isRenamed = false;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            String processedNewNamePath = replaceFileFolderPathName(processedSourcePath, newName);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile() && isFile(processedNewNamePath, false)) {
+                    // rename file
+                    System.out.println("rename file: " + sourceFile.getPath() + "\nto: " + processedNewNamePath);
+                    sourceFile.renameTo(new File(processedNewNamePath));
+                    isRenamed = true;
+                } else if (sourceFile.isDirectory()) {
+                    // rename directory
+                    System.out.println("rename folder: " + sourceFile.getPath() + "\nto: " + processedNewNamePath);
+                    sourceFile.renameTo(new File(processedNewNamePath));
+                    isRenamed = true;
+                }
+            }
+            System.out.println(replaceFileFolderPathName(processedSourcePath, newName));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isRenamed;
+    }
+
+    public static boolean deleteFileFolder(String sourcePath) {
+        boolean isDeleted = false;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists()) {
+                System.out.println("deleted: " + sourceFile.getPath());
+                FileUtils.forceDelete(sourceFile);
+                isDeleted = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isDeleted;
+    }
+
     private static boolean isPathAbsolute(String path) {
         return Paths.get(path).isAbsolute();
     }
@@ -76,7 +120,15 @@ public class FileFolderCrudLib {
         return Paths.get(path).toAbsolutePath().toString();
     }
 
-    private static boolean isFile(String name) {
-        return name.indexOf(".") != -1;
+    private static boolean isFile(String nameOrPath, boolean isFileName) {
+        if (!isFileName) {
+            File file = new File(nameOrPath);
+            nameOrPath = file.getName();
+        }
+        return nameOrPath.indexOf(".") != -1;
+    }
+
+    private static String replaceFileFolderPathName(String path, String replaceName) {
+        return path.substring(0, path.lastIndexOf(separator) + 1) + replaceName;
     }
 }
