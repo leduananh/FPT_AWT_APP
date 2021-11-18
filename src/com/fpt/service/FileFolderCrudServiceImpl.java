@@ -118,6 +118,27 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     }
 
     @Override
+    public void fileFolderCreationDate() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get creation date: ");
+        String date = FileFolderLib.getFileFolderCreationDate(sourcePath);
+        System.out.println("creation date: " + date);
+    }
+
+    @Override
+    public void fileFolderLastModifiedDate() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get last modified date: ");
+        String date = FileFolderLib.getFileFolderLastModifiedDate(sourcePath);
+        System.out.println("last modified date: " + date);
+    }
+
+    @Override
+    public void fileFolderLastAccessDate() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get last access date: ");
+        String date = FileFolderLib.getFileFolderLastAccessDate(sourcePath);
+        System.out.println("last access date: " + date);
+    }
+
+    @Override
     public void deleteFileFolder() {
         String sourcePath = readText("input your sourcePath to delete file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
         boolean isRenamed = FileFolderLib.deleteFileFolder(sourcePath);

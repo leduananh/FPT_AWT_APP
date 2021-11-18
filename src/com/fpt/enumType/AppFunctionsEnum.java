@@ -15,7 +15,10 @@ public enum AppFunctionsEnum {
     WRITE_DATA_TO_FILE("writeDataToFile", "write data (data)  to source file (sourcePath) with response status in variable (undefined)", true),
     OVER_WRITE_FILE("overWriteFileData", "override new data (data) to file location (filePath) with response data in variable (undefined)", true),
     FILE_FOLDER_SIZE("getFileFolderSize", "get file/folder size from (sourcePath) with size store in variable (undefined)", true),
-    FILE_FOLDER_ATTRIBUTES("fileFolderAttributes","get attributes from file/folder (path) with attribute store in variable (undefined)", true),
+    FILE_FOLDER_ATTRIBUTES("fileFolderAttributes", "get attributes from file/folder (path) with attribute store in variable (undefined)", true),
+    FILE_FOLDER_CREATION_DATE("fileFolderCreationDate", "get creation date from file/folder (path) with date store in variable (undefined)", true),
+    FILE_FOLDER_LAST_MODIFIED_DATE("fileFolderLastModifiedDate", "get last modified date from file/folder (path) with date store in variable (undefined)", true),
+    FILE_FOLDER_LAST_ACCESS_DATE("fileFolderLastAccessDate", "get last accessed date from file/folder (path) with date store in variable (undefined)", true),
     DELETE_FILE_FOLDER("deleteFileFolder", "delete file/folder from location (path) with response status (undefined)", false),
     ;
 

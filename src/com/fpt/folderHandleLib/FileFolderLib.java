@@ -322,6 +322,30 @@ public class FileFolderLib {
         return null;
     }
 
+    public static String getFileFolderCreationDate(String sourcePath) {
+        String date = null;
+        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        if (checkFileFolderExists(processedSourcePath))
+            date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).creationTime());
+        return date;
+    }
+
+    public static String getFileFolderLastModifiedDate(String sourcePath) {
+        String date = null;
+        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        if (checkFileFolderExists(processedSourcePath))
+            date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).lastModifiedTime());
+        return date;
+    }
+
+    public static String getFileFolderLastAccessDate(String sourcePath) {
+        String date = null;
+        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        if (checkFileFolderExists(processedSourcePath))
+            date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).lastAccessTime());
+        return date;
+    }
+
     private static BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
         BasicFileAttributes basicFileAttributes = null;
         try {
