@@ -24,7 +24,7 @@ public class Menu {
 
         for (int i = 0; i < functions.size(); i++) {
             int lineIndex = i + 1;
-            String line = lineIndex + ". " + functions.get(i).getFunctionDescription();
+            String line = lineIndex + ". " + functions.get(i).getFunctionTitle();
             System.out.println(line);
         }
     }

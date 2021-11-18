@@ -51,22 +51,6 @@ public class FileFolderLib {
         return isCreated;
     }
 
-    private static boolean createFileFolder(File sourceFile) {
-        boolean isCreated = false;
-        try {
-            if (isFile(sourceFile.getName(), true)) {
-                Files.createParentDirs(sourceFile);
-                Files.touch(sourceFile);
-                isCreated = true;
-            } else {
-                isCreated = sourceFile.mkdirs();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return isCreated;
-    }
-
     @DescriptorKey("Prefix:ART; "
             + "move file/directory from source path [1] to destination location [2] with response status store in variable [boolean result]; "
             + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
@@ -186,20 +170,6 @@ public class FileFolderLib {
         return fileNamesJson;
     }
 
-    private static Set<File> listFileFolder(String sourcePath) {
-        Set<File> files = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists())
-                files = Stream.of(sourceFile.listFiles())
-                        .collect(Collectors.toSet());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return files;
-    }
-
     @DescriptorKey("Prefix:ART; "
             + "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result]; "
             + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
@@ -222,21 +192,10 @@ public class FileFolderLib {
         return isMerge;
     }
 
-    private static boolean appendFileContent(String newData, File sourceFile) {
-        boolean isAppend = false;
-        try {
-            newData = newData.trim();
-            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
-                String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
-                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
-            }
-            isAppend = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return isAppend;
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "write data [1] to source file [2] , create file if not exist with response status store in local variable [boolean result]; "
+            + "newData - Other - is text content; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static boolean writeDataToFile(String newData, String sourcePath) {
         boolean isWrite = false;
         try {
@@ -260,22 +219,6 @@ public class FileFolderLib {
         return isWrite;
     }
 
-    public static boolean overWriteFile(String newData, String sourcePath) {
-        boolean isOverWrite = false;
-        try {
-            newData = newData.trim();
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
-                FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
-                isOverWrite = true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return isOverWrite;
-    }
-
     @DescriptorKey("Prefix:ART; "
             + "append new content [1] to exist source file [2] with response status store in local variable [boolean result]; "
             + "content - Other - is text content; "
@@ -287,7 +230,8 @@ public class FileFolderLib {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
-                FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
+                String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
+                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
             }
             isAppend = true;
         } catch (IOException e) {
@@ -334,17 +278,9 @@ public class FileFolderLib {
         return data;
     }
 
-    private static String readFileData(File sourceFile) {
-        String data = null;
-        try {
-            if (sourceFile.exists() && sourceFile.isFile())
-                data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "get file/folder size from [1] with response data store in variable [text result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String getFileFolderSize(String sourcePath) {
         String size = null;
         try {
@@ -362,39 +298,10 @@ public class FileFolderLib {
         return size;
     }
 
-    private static Long getFileFolderSizeByte(String sourcePath) {
-        Long size = 0l;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists()) {
-                if (sourceFile.isFile()) // file size
-                    size = FileUtils.sizeOf(sourceFile);
-                else if (sourceFile.isDirectory()) // directory size
-                    size = FileUtils.sizeOfDirectory(sourceFile);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return size;
-    }
-
-    private static Long getFileFolderSizeByte(File sourceFile) {
-        Long size = 0l;
-        try {
-            if (sourceFile.exists()) {
-                if (sourceFile.isFile()) // file size
-                    size = FileUtils.sizeOf(sourceFile);
-                else if (sourceFile.isDirectory()) // directory size
-                    size = FileUtils.sizeOfDirectory(sourceFile);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return size;
-    }
-
-    public static String getFileFolderAttributes(String sourcePath) {
+    @DescriptorKey("Prefix:ART; "
+            + "get attributes from file/directory path [1] with response data store in variable [jsonObject result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
+    public static String fileFolderAttributes(String sourcePath) {
         String attributesJson = null;
         try {
             FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
@@ -440,29 +347,9 @@ public class FileFolderLib {
         return attributesJson;
     }
 
-    private static FileFolderAttributesDto getFileFolderAttributes(File sourceFile) {
-        FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
-        try {
-            if (sourceFile.exists()) {
-                BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourceFile.getAbsolutePath());
-                fileFolderAttributesDto.setName(sourceFile.getName());
-                Long sizeByte = getFileFolderSizeByte(sourceFile);
-                fileFolderAttributesDto.setSizeByte(sizeByte);
-                fileFolderAttributesDto.setSizeText(humanReadableByteCountBin(sizeByte));
-                fileFolderAttributesDto.setCreationDateTime(getFileFolderCreationDate(basicFileAttributes));
-                fileFolderAttributesDto.setLastModifiedDateTime(getFileFolderLastModifiedDate(basicFileAttributes));
-                fileFolderAttributesDto.setLastAccessDateTime(getFileFolderLastAccessDate(basicFileAttributes));
-                fileFolderAttributesDto.setFile(basicFileAttributes.isRegularFile());
-                fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
-                fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
-                fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return fileFolderAttributesDto;
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "get created date time from file/directory path [1] with response data store in variable [text result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String getFileFolderCreationDate(String sourcePath) {
         String date = null;
         String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
@@ -471,10 +358,9 @@ public class FileFolderLib {
         return date;
     }
 
-    private static String getFileFolderCreationDate(BasicFileAttributes basicFileAttributes) {
-        return toDateStringFromFileTime(basicFileAttributes.creationTime());
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "get last modified date time from file/directory path [1] with response data store in variable [text result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String getFileFolderLastModifiedDate(String sourcePath) {
         String date = null;
         String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
@@ -487,6 +373,9 @@ public class FileFolderLib {
         return toDateStringFromFileTime(basicFileAttributes.lastModifiedTime());
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "get last accessed date time from file/directory path [1] with response data store in variable [text result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String getFileFolderLastAccessDate(String sourcePath) {
         String date = null;
         String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
@@ -495,44 +384,9 @@ public class FileFolderLib {
         return date;
     }
 
-    private static String getFileFolderLastAccessDate(BasicFileAttributes basicFileAttributes) {
-        return toDateStringFromFileTime(basicFileAttributes.lastAccessTime());
-    }
-
-    private static BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
-        BasicFileAttributes basicFileAttributes = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            if (checkFileFolderExists(processedSourcePath))
-                basicFileAttributes = java.nio.file.Files.getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class).readAttributes();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return basicFileAttributes;
-    }
-
-    private static String toDateStringFromFileTime(FileTime fileTime) {
-        return fileTime
-                .toInstant()
-                .atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID))
-                .toLocalDateTime().format(DateTimeFormatter.ofPattern(LIB_DEFAULT_DATE_TIME_PATTERN));
-    }
-
-    private static String humanReadableByteCountBin(long bytes) {
-        long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
-        if (absB < 1024) {
-            return bytes + " B";
-        }
-        long value = absB;
-        CharacterIterator ci = new StringCharacterIterator("KMGTPE");
-        for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10) {
-            value >>= 10;
-            ci.next();
-        }
-        value *= Long.signum(bytes);
-        return String.format("%.1f %ciB", value / 1024.0, ci.current());
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "delete file/directory from source location path [1] with response data store in variable [boolean result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static boolean deleteFileFolder(String sourcePath) {
         boolean isDeleted = false;
         try {
@@ -573,5 +427,174 @@ public class FileFolderLib {
 
     private static String replaceFileFolderPathName(String path, String replaceName) {
         return path.substring(0, path.lastIndexOf(SEPARATOR) + 1) + replaceName;
+    }
+
+    private static boolean createFileFolder(File sourceFile) {
+        boolean isCreated = false;
+        try {
+            if (isFile(sourceFile.getName(), true)) {
+                Files.createParentDirs(sourceFile);
+                Files.touch(sourceFile);
+                isCreated = true;
+            } else {
+                isCreated = sourceFile.mkdirs();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isCreated;
+    }
+
+    private static String getFileFolderCreationDate(BasicFileAttributes basicFileAttributes) {
+        return toDateStringFromFileTime(basicFileAttributes.creationTime());
+    }
+
+    private static String getFileFolderLastAccessDate(BasicFileAttributes basicFileAttributes) {
+        return toDateStringFromFileTime(basicFileAttributes.lastAccessTime());
+    }
+
+    private static BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
+        BasicFileAttributes basicFileAttributes = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            if (checkFileFolderExists(processedSourcePath))
+                basicFileAttributes = java.nio.file.Files.getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class).readAttributes();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return basicFileAttributes;
+    }
+
+    private static String toDateStringFromFileTime(FileTime fileTime) {
+        return fileTime
+                .toInstant()
+                .atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID))
+                .toLocalDateTime().format(DateTimeFormatter.ofPattern(LIB_DEFAULT_DATE_TIME_PATTERN));
+    }
+
+    private static String humanReadableByteCountBin(long bytes) {
+        long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
+        if (absB < 1024) {
+            return bytes + " B";
+        }
+        long value = absB;
+        CharacterIterator ci = new StringCharacterIterator("KMGTPE");
+        for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10) {
+            value >>= 10;
+            ci.next();
+        }
+        value *= Long.signum(bytes);
+        return String.format("%.1f %ciB", value / 1024.0, ci.current());
+    }
+
+    private static FileFolderAttributesDto getFileFolderAttributes(File sourceFile) {
+        FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
+        try {
+            if (sourceFile.exists()) {
+                BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourceFile.getAbsolutePath());
+                fileFolderAttributesDto.setName(sourceFile.getName());
+                Long sizeByte = getFileFolderSizeByte(sourceFile);
+                fileFolderAttributesDto.setSizeByte(sizeByte);
+                fileFolderAttributesDto.setSizeText(humanReadableByteCountBin(sizeByte));
+                fileFolderAttributesDto.setCreationDateTime(getFileFolderCreationDate(basicFileAttributes));
+                fileFolderAttributesDto.setLastModifiedDateTime(getFileFolderLastModifiedDate(basicFileAttributes));
+                fileFolderAttributesDto.setLastAccessDateTime(getFileFolderLastAccessDate(basicFileAttributes));
+                fileFolderAttributesDto.setFile(basicFileAttributes.isRegularFile());
+                fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
+                fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
+                fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileFolderAttributesDto;
+    }
+
+    private static Long getFileFolderSizeByte(String sourcePath) {
+        Long size = 0l;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile()) // file size
+                    size = FileUtils.sizeOf(sourceFile);
+                else if (sourceFile.isDirectory()) // directory size
+                    size = FileUtils.sizeOfDirectory(sourceFile);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
+
+    private static String readFileData(File sourceFile) {
+        String data = null;
+        try {
+            if (sourceFile.exists() && sourceFile.isFile())
+                data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    private static Set<File> listFileFolder(String sourcePath) {
+        Set<File> files = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists())
+                files = Stream.of(sourceFile.listFiles())
+                        .collect(Collectors.toSet());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return files;
+    }
+
+    private static boolean appendFileContent(String newData, File sourceFile) {
+        boolean isAppend = false;
+        try {
+            newData = newData.trim();
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
+                String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
+                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
+            }
+            isAppend = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isAppend;
+    }
+
+    public static boolean overWriteFileData(String newData, String sourcePath) {
+        boolean isOverWrite = false;
+        try {
+            newData = newData.trim();
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
+                FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
+                isOverWrite = true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isOverWrite;
+    }
+
+    private static Long getFileFolderSizeByte(File sourceFile) {
+        Long size = 0l;
+        try {
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile()) // file size
+                    size = FileUtils.sizeOf(sourceFile);
+                else if (sourceFile.isDirectory()) // directory size
+                    size = FileUtils.sizeOfDirectory(sourceFile);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
     }
 }

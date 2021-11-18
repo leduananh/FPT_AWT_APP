@@ -1,36 +1,36 @@
 package com.fpt.enumType;
 
 public enum AppFunctionsEnum {
-    CREATE_FILE_FOLDER(1, "createFileFolder", "create new file/folder from (path) with response status (undefined)", true),
-    MOVE_FILE_FOLDER(2, "moveFileFolder", "move file/folder from location (sourcePath) to destination location (targetPath) with response status (undefined)", true),
-    CHECK_FILE_FOLDER_EXIST(3, "checkFileFolderExist", "check file/folder from source location is exists with response status store in variable (undefined)", true),
-    RENAME_FILE_FOLDER(4, "renameFileFolder", "rename file/folder from location (path) to new (newName) with response status (undefined)", true),
-    LIST_FILE_FOLDER_NAMES(5, "listFileFolderNames", "get files and subdirectories name from file/folder location (sourcePath) with response data (undefined)", true),
-    LIST_FILE_NAMES(6, "listFileNames", "get files name from file/folder location (sourcePath) with response data (undefined)", true),
-    LIST_FOLDER_NAMES(7, "listFolderNames", "get subdirectories name from file/folder location (sourcePath) with response data (undefined)", true),
-    MERGE_FILE_DATA(8, "mergeFileData", "merge file from file location (sourcePath) to target file location (targetPath) and status store in local variable (undefined)", true),
-    APPEND_FILE_CONTENT(9, "appendFileContent", "append new content (newContent) to source file (sourcePath) with response data (undefined)", true),
-    READ_FILE_DATA(10, "readFileData", "read data from source file (sourcePath) with file data response in variable (undefined)", true),
-    WRITE_DATA_TO_FILE(11, "writeDataToFile", "write data (data)  to source file (sourcePath) with response status in variable (undefined)", true),
+    CREATE_FILE_FOLDER(1, "createFileFolder", "create new file/directories from [1] with response status store in variable [boolean result];", true),
+    MOVE_FILE_FOLDER(2, "moveFileFolder", "move file/directory from source path [1] to destination location [2] with response status store in variable [boolean result];", true),
+    CHECK_FILE_FOLDER_EXIST(3, "checkFileFolderExist", "check file/directory from source location [1] is exists with response status store in variable [boolean result];", true),
+    RENAME_FILE_FOLDER(4, "renameFileFolder", "rename file/directory from source location [1] to new name [2] with response status store in variable [boolean result];", true),
+    LIST_FILE_FOLDER_NAMES(5, "listFileFolderNames", "list files and subdirectories name from source location [1] with response data store in variable [jsonStringArray result];", true),
+    LIST_FILE_NAMES(6, "listFileNames", "list files name from source location [1] with response data store in variable [jsonStringArray result];", true),
+    LIST_FOLDER_NAMES(7, "listFolderNames", "list subdirectories name from source location [1] with response data store in variable [jsonStringArray result];", true),
+    MERGE_FILE_DATA(8, "mergeFileData", "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result];", true),
+    APPEND_FILE_CONTENT(9, "appendFileContent", "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result];", true),
+    READ_FILE_DATA(10, "readFileData", "read data from source path [1] with response data store in variable [text result];", true),
+    WRITE_DATA_TO_FILE(11, "writeDataToFile", "write data [1] to source file [2] , create file if not exist with response status store in local variable [boolean result];", true),
     OVER_WRITE_FILE(12, "overWriteFileData", "override new data (data) to file location (filePath) with response data in variable (undefined)", true),
-    FILE_FOLDER_SIZE(13, "getFileFolderSize", "get file/folder size from (sourcePath) with size store in variable (undefined)", true),
-    FILE_FOLDER_ATTRIBUTES(14, "fileFolderAttributes", "get attributes from file/folder (path) with attribute store in variable (undefined)", true),
-    LIST_FILE_FOLDER_ATTRIBUTES(15, "listFileFolderAttributes", "get files and subdirectories detail from file/folder location (sourcePath) with response status store in variable (undefined)", true),
-    FILE_FOLDER_CREATION_DATE(16, "fileFolderCreationDate", "get creation date from file/folder (path) with date store in variable (undefined)", true),
-    FILE_FOLDER_LAST_MODIFIED_DATE(17, "fileFolderLastModifiedDate", "get last modified date from file/folder (path) with date store in variable (undefined)", true),
-    FILE_FOLDER_LAST_ACCESS_DATE(18, "fileFolderLastAccessDate", "get last accessed date from file/folder (path) with date store in variable (undefined)", true),
-    DELETE_FILE_FOLDER(19, "deleteFileFolder", "delete file/folder from location (path) with response status (undefined)", false),
+    FILE_FOLDER_SIZE(13, "getFileFolderSize", "get file/folder size from [1] with response data store in variable [text result];", true),
+    FILE_FOLDER_ATTRIBUTES(14, "fileFolderAttributes", "get attributes from file/directory path [1] with response data store in variable [jsonObject result];", true),
+    LIST_FILE_FOLDER_ATTRIBUTES(15, "listFileFolderAttributes", "list files and subdirectories detail from directory source location [1] with response data store in variable [jsonObjectArray result];", true),
+    FILE_FOLDER_CREATION_DATE(16, "fileFolderCreationDate", "get created date time from file/directory path [1] with response data store in variable [text result];", true),
+    FILE_FOLDER_LAST_MODIFIED_DATE(17, "fileFolderLastModifiedDate", "get last modified date time from file/directory path [1] with response data store in variable [text result];", true),
+    FILE_FOLDER_LAST_ACCESS_DATE(18, "fileFolderLastAccessDate", "get last accessed date time from file/directory path [1] with response data store in variable [text result];", true),
+    DELETE_FILE_FOLDER(19, "deleteFileFolder", "delete file/directory from source location path [1] with response data store in variable [boolean result];", false),
     ;
 
     private final int index;
     private final String functionName;
-    private final String functionDescription;
+    private final String functionTitle;
     private final boolean isUsed;
 
-    private AppFunctionsEnum(int index, String name, String description, boolean isUsed) {
+    private AppFunctionsEnum(int index, String name, String title, boolean isUsed) {
         this.index = index;
         this.functionName = name;
-        this.functionDescription = description;
+        this.functionTitle = title;
         this.isUsed = isUsed;
     }
 
@@ -42,8 +42,8 @@ public enum AppFunctionsEnum {
         return functionName;
     }
 
-    public String getFunctionDescription() {
-        return functionDescription;
+    public String getFunctionTitle() {
+        return functionTitle;
     }
 
     public boolean isUsed() {

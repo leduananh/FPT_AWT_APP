@@ -37,5 +37,7 @@ public interface FileFolderCrudService {
 
     public void fileFolderLastAccessDate();
 
+    public void overWriteFileData();
+
     public void deleteFileFolder();
 }

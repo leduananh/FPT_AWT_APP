@@ -63,7 +63,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void listFolderNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        String folderNamesJson  = FileFolderLib.listFolderNames(sourcePath);
+        String folderNamesJson = FileFolderLib.listFolderNames(sourcePath);
         System.out.println("subdirectories name array json: \n" + folderNamesJson);
         pressToContinue("press ENTER to back to main menu...");
     }
@@ -131,7 +131,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void fileFolderAttributes() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get file/folder size: ");
-        String attributesJson = FileFolderLib.getFileFolderAttributes(sourcePath);
+        String attributesJson = FileFolderLib.fileFolderAttributes(sourcePath);
         System.out.println("attributes: \n" + attributesJson);
         pressToContinue("press ENTER to back to main menu...");
     }
@@ -157,6 +157,15 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get last access date: ");
         String date = FileFolderLib.getFileFolderLastAccessDate(sourcePath);
         System.out.println("last access date: " + date);
+        pressToContinue("press ENTER to back to main menu...");
+    }
+
+    @Override
+    public void overWriteFileData() {
+        String newData = readText("input your new data to append to source file: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get last access date: ");
+        boolean status = FileFolderLib.overWriteFileData(newData, sourcePath);
+        System.out.println("status: " + status);
         pressToContinue("press ENTER to back to main menu...");
     }
 
