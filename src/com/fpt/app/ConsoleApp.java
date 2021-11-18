@@ -5,10 +5,7 @@ import com.fpt.enumType.UsedClazzEnum;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Scanner;
+import java.util.*;
 
 public class ConsoleApp {
     private Menu appMenu;
@@ -30,18 +27,21 @@ public class ConsoleApp {
 
     private String readUserInput() {
         String functionName = null;
-        Scanner scanner = new Scanner(System.in);
+
         while (true) {
             System.out.print(REQUEST_INPUT_TITLE);
             try {
+                Scanner scanner = new Scanner(System.in);
                 int menuIndex = scanner.nextInt();
                 if (menuIndex > this.appMenu.getFunctionSize())
-                    throw new Exception("dont have this function...");
+                    throw new IllegalArgumentException("dont have this function...");
                 int arrayIndex = menuIndex - 1;
                 functionName = this.appMenu.getFunctionNameByIndex(arrayIndex);
                 break;
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e){
                 System.out.println(e.getMessage());
+            } catch (InputMismatchException e) {
+                System.out.println("only number...");
             }
         }
         return functionName;
