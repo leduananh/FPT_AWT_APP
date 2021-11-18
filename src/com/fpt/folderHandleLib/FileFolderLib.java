@@ -16,10 +16,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -146,41 +144,46 @@ public class FileFolderLib {
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "list files and subdirectories name from file/directory from source location [1] with response data store in variable [jsonStringArray result]; "
+            + "list files and subdirectories name from source location [1] with response data store in variable [jsonStringArray result]; "
             + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String listFileFolderNames(String sourcePath) {
         String namesJson = null;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists()) {
+            if (sourceFile.exists() && sourceFile.isDirectory()) {
                 Set<String> fileFolderNames = Stream.of(sourceFile.listFiles())
                         .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
                         .collect(Collectors.toSet());
                 if (fileFolderNames != null && fileFolderNames.size() != 0)
                     namesJson = new Gson().toJson(fileFolderNames, Set.class);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         return namesJson;
     }
 
-    public static Set<String> listFileNames(String sourcePath) {
-        Set<String> fileNames = null;
+    @DescriptorKey("Prefix:ART; "
+            + "list files name from source location [1] with response data store in variable [jsonStringArray result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
+    public static String listFileNames(String sourcePath) {
+        String fileNamesJson = null;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists())
-                fileNames = Stream.of(sourceFile.listFiles())
+            if (sourceFile.exists() && sourceFile.isDirectory()) {
+                Set<String> fileNames = Stream.of(sourceFile.listFiles())
                         .filter(file -> file.isFile())
                         .map(File::getName)
                         .collect(Collectors.toSet());
+                if (fileNames != null && fileNames.size() != 0)
+                    fileNamesJson = new Gson().toJson(fileNamesJson, Set.class);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return fileNames;
+        return fileNamesJson;
     }
 
     private static Set<File> listFileFolder(String sourcePath) {
@@ -197,6 +200,10 @@ public class FileFolderLib {
         return files;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
+            + "targetPath - File - is destination folder can be relative/absolute path;")
     public static boolean mergeFileData(String sourcePath, String targetPath) {
         boolean isMerge = false;
         try {
@@ -269,6 +276,10 @@ public class FileFolderLib {
         return isOverWrite;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "append new content [1] to exist source file [2] with response status store in local variable [boolean result]; "
+            + "content - Other - is text content; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static boolean appendFileContent(String newData, String sourcePath) {
         boolean isAppend = false;
         try {
@@ -285,21 +296,31 @@ public class FileFolderLib {
         return isAppend;
     }
 
-    public static Set<String> listFolderNames(String sourcePath) {
-        Set<String> folderNames = null;
+    @DescriptorKey("Prefix:ART; "
+            + "list subdirectories name from source location [1] with response data store in variable [jsonStringArray result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
+    public static String listFolderNames(String sourcePath) {
+        String folderNamesJson = null;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            folderNames = Stream.of(sourceFile.listFiles())
-                    .filter(file -> file.isDirectory())
-                    .map(File::getName)
-                    .collect(Collectors.toSet());
+            if (sourceFile.exists() && sourceFile.isDirectory()) {
+                Set<String> fileNames = Stream.of(sourceFile.listFiles())
+                        .filter(file -> file.isDirectory())
+                        .map(File::getName)
+                        .collect(Collectors.toSet());
+                if (fileNames != null && fileNames.size() != 0)
+                    folderNamesJson = new Gson().toJson(folderNamesJson, Set.class);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return folderNames;
+        return folderNamesJson;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "read data from source path [1] with response data store in variable [text result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String readFileData(String sourcePath) {
         String data = null;
         try {
@@ -401,6 +422,9 @@ public class FileFolderLib {
         return attributesJson;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "list files and subdirectories detail from directory source location [1] with response data store in variable [jsonObjectArray result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static String listFileFolderAttributes(String sourcePath) {
         String attributesJson = null;
         try {

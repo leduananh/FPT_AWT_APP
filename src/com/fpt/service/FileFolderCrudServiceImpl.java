@@ -47,24 +47,24 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void listFileFolderNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        Set<String> fileFolderNames = FileFolderLib.listFileFolderNames(sourcePath);
-        fileFolderNames.forEach(name -> System.out.println("+ " + name));
+        String fileFolderNamesJson = FileFolderLib.listFileFolderNames(sourcePath);
+        System.out.println("files/directories name array json: \n" + fileFolderNamesJson);
         pressToContinue("press ENTER to back to main menu...");
     }
 
     @Override
     public void listFileNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        Set<String> fileNames = FileFolderLib.listFileNames(sourcePath);
-        fileNames.forEach(name -> System.out.println("+ " + name));
+        String fileNamesJson = FileFolderLib.listFileNames(sourcePath);
+        System.out.println("files name array json: \n" + fileNamesJson);
         pressToContinue("press ENTER to back to main menu...");
     }
 
     @Override
     public void listFolderNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        Set<String> FolderNames = FileFolderLib.listFolderNames(sourcePath);
-        FolderNames.forEach(name -> System.out.println("+ " + name));
+        String folderNamesJson  = FileFolderLib.listFolderNames(sourcePath);
+        System.out.println("subdirectories name array json: \n" + folderNamesJson);
         pressToContinue("press ENTER to back to main menu...");
     }
 
@@ -169,7 +169,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     }
 
     private void pressToContinue(String title) {
-        System.out.println(title);
+        System.out.println("\n" + title);
         scanner.nextLine();
     }
 
