@@ -5,9 +5,10 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.regex.Pattern;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FileFolderCrudLib {
     private static final String separator = "\\";
@@ -89,11 +90,55 @@ public class FileFolderCrudLib {
                     isRenamed = true;
                 }
             }
-            System.out.println(replaceFileFolderPathName(processedSourcePath, newName));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return isRenamed;
+    }
+
+    public static Set<String> listFileFolderNames(String sourcePath) {
+        Set<String> fileFolderNames = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            fileFolderNames = Stream.of(sourceFile.listFiles())
+//                    .filter(file -> !file.isDirectory())
+                    .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileFolderNames;
+    }
+
+    public static Set<String> listFileNames(String sourcePath) {
+        Set<String> fileNames = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            fileNames = Stream.of(sourceFile.listFiles())
+                    .filter(file -> file.isFile())
+                    .map(File::getName)
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileNames;
+    }
+
+    public static Set<String> listFolderNames(String sourcePath) {
+        Set<String> folderNames = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            folderNames = Stream.of(sourceFile.listFiles())
+                    .filter(file -> file.isDirectory())
+                    .map(File::getName)
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return folderNames;
     }
 
     public static boolean deleteFileFolder(String sourcePath) {

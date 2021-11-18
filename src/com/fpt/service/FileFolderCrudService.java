@@ -5,5 +5,9 @@ public interface FileFolderCrudService {
     public void moveFileFolder();
     public void checkFileFolderExist();
     public void renameFileFolder();
+    public void listFileFolderNames();
+    public void listFileNames();
+    public void listFolderNames();
+    public void listFilesDetail();
     public void deleteFileFolder();
 }

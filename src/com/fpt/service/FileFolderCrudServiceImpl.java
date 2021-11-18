@@ -3,6 +3,7 @@ package com.fpt.service;
 import com.fpt.folderHandleLib.FileFolderCrudLib;
 
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class FileFolderCrudServiceImpl implements FileFolderCrudService {
@@ -36,6 +37,32 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
         String newName = readText("input your new file/folder name: ");
         boolean isRenamed = FileFolderCrudLib.renameFileFolder(sourcePath, newName);
         System.out.println("respond status: " + isRenamed);
+    }
+
+    @Override
+    public void listFileFolderNames() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        Set<String> fileFolderNames = FileFolderCrudLib.listFileFolderNames(sourcePath);
+        fileFolderNames.forEach(name -> System.out.println("+ " + name));
+    }
+
+    @Override
+    public void listFileNames() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        Set<String> fileNames = FileFolderCrudLib.listFileNames(sourcePath);
+        fileNames.forEach(name -> System.out.println("+ " + name));
+    }
+
+    @Override
+    public void listFolderNames() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        Set<String> FolderNames = FileFolderCrudLib.listFolderNames(sourcePath);
+        FolderNames.forEach(name -> System.out.println("+ " + name));
+    }
+
+    @Override
+    public void listFilesDetail() {
+
     }
 
     @Override
