@@ -70,7 +70,10 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
 
     @Override
     public void listFileFolderAttributes() {
-
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        String json = FileFolderLib.listFileFolderAttributes(sourcePath);
+        System.out.println("list attributes : " + json);
+        pressToContinue("press ENTER to back to main menu...");
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.google.common.io.Files;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 
+import javax.management.DescriptorKey;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +32,9 @@ public class FileFolderLib {
     private static final String LIB_DEFAULT_ZONE_ID = "Asia/Ho_Chi_Minh";
     private static final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
 
-
+    @DescriptorKey("Prefix:ART; "
+            + "create new file/directories from [1] with response status store in variable [boolean result]; "
+            + "sourcePath - File - is fileName/folderName/relative/absolute path;")
     public static boolean createFileFolder(String sourcePath) {
         boolean isCreated = false;
         try {
@@ -65,6 +69,10 @@ public class FileFolderLib {
         return isCreated;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "move file/directory from source path [1] to destination location [2] with response status store in variable [boolean result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
+            + "targetPath - File - is destination folder can be relative/absolute path;")
     public static boolean moveFileFolder(String sourcePath, String targetPath) {
         boolean isMoved = false;
         try {
@@ -93,6 +101,9 @@ public class FileFolderLib {
         return isMoved;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "check file/directory from source location [1] is exists with response status store in variable [boolean result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
     public static boolean checkFileFolderExists(String sourcePath) {
         boolean isExist = false;
         try {
@@ -105,6 +116,10 @@ public class FileFolderLib {
         return isExist;
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "rename file/directory from source location [1] to new name [2] with response status store in variable [boolean result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
+            + "newName - Other - is fileName/folderName can be relative/absolute path;")
     public static boolean renameFileFolder(String sourcePath, String newName) {
         boolean isRenamed = false;
         try {
@@ -130,18 +145,26 @@ public class FileFolderLib {
         return isRenamed;
     }
 
-    public static Set<String> listFileFolderNames(String sourcePath) {
-        Set<String> fileFolderNames = null;
+    @DescriptorKey("Prefix:ART; "
+            + "list files and subdirectories name from file/directory from source location [1] with response data store in variable [jsonStringArray result]; "
+            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
+    public static String listFileFolderNames(String sourcePath) {
+        String namesJson = null;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            fileFolderNames = Stream.of(sourceFile.listFiles())
-                    .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
-                    .collect(Collectors.toSet());
+            if (sourceFile.exists()) {
+                Set<String> fileFolderNames = Stream.of(sourceFile.listFiles())
+                        .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
+                        .collect(Collectors.toSet());
+                if (fileFolderNames != null && fileFolderNames.size() != 0)
+                    namesJson = new Gson().toJson(fileFolderNames, Set.class);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return fileFolderNames;
+        return namesJson;
     }
 
     public static Set<String> listFileNames(String sourcePath) {
@@ -149,14 +172,29 @@ public class FileFolderLib {
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            fileNames = Stream.of(sourceFile.listFiles())
-                    .filter(file -> file.isFile())
-                    .map(File::getName)
-                    .collect(Collectors.toSet());
+            if (sourceFile.exists())
+                fileNames = Stream.of(sourceFile.listFiles())
+                        .filter(file -> file.isFile())
+                        .map(File::getName)
+                        .collect(Collectors.toSet());
         } catch (Exception e) {
             e.printStackTrace();
         }
         return fileNames;
+    }
+
+    private static Set<File> listFileFolder(String sourcePath) {
+        Set<File> files = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists())
+                files = Stream.of(sourceFile.listFiles())
+                        .collect(Collectors.toSet());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return files;
     }
 
     public static boolean mergeFileData(String sourcePath, String targetPath) {
@@ -357,6 +395,21 @@ public class FileFolderLib {
                 fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
                 attributesJson = new Gson().toJson(fileFolderAttributesDto, FileFolderAttributesDto.class);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return attributesJson;
+    }
+
+    public static String listFileFolderAttributes(String sourcePath) {
+        String attributesJson = null;
+        try {
+            FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            Set<File> files = listFileFolder(processedSourcePath);
+            List<FileFolderAttributesDto> attributes = files.stream().map(file -> getFileFolderAttributes(file)).collect(Collectors.toList());
+            if (attributes != null && attributes.size() != 0)
+                attributesJson = new Gson().toJson(attributes, List.class);
         } catch (Exception e) {
             e.printStackTrace();
         }

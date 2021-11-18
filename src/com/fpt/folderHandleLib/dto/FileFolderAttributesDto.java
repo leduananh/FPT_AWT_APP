@@ -1,6 +1,8 @@
 package com.fpt.folderHandleLib.dto;
 
-public class FileFolderAttributesDto {
+import java.io.Serializable;
+
+public class FileFolderAttributesDto implements Serializable {
     private String name;
     private String sizeText;
     private long sizeByte;
