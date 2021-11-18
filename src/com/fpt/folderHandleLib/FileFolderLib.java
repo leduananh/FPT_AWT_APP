@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FileFolderCrudLib {
+public class FileFolderLib {
     private static final String separator = "\\";
 
     public static boolean createFileFolder(String sourcePath) {
@@ -19,6 +19,22 @@ public class FileFolderCrudLib {
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
+            if (isFile(sourceFile.getName(), true)) {
+                Files.createParentDirs(sourceFile);
+                Files.touch(sourceFile);
+                isCreated = true;
+            } else {
+                isCreated = sourceFile.mkdirs();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isCreated;
+    }
+
+    private static boolean createFileFolder(File sourceFile) {
+        boolean isCreated = false;
+        try {
             if (isFile(sourceFile.getName(), true)) {
                 Files.createParentDirs(sourceFile);
                 Files.touch(sourceFile);
@@ -148,13 +164,38 @@ public class FileFolderCrudLib {
         boolean isAppend = false;
         try {
             newData = newData.trim();
-            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty())
-                FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
+                String currentData = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, StandardCharsets.UTF_8);
+            }
             isAppend = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return isAppend;
+    }
+
+    public static boolean writeDataToFile(String newData, String sourcePath) {
+        boolean isWrite = false;
+        try {
+            newData = newData.trim();
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile() && !newData.isEmpty()) {
+                    FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                    isWrite = true;
+                }
+            } else {
+                if (createFileFolder(sourceFile)) {
+                    FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+                    isWrite = true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isWrite;
     }
 
     public static boolean appendFileContent(String newData, String sourcePath) {
@@ -163,8 +204,9 @@ public class FileFolderCrudLib {
             newData = newData.trim();
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty())
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
                 FileUtils.writeStringToFile(sourceFile, newData, StandardCharsets.UTF_8);
+            }
             isAppend = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -185,6 +227,30 @@ public class FileFolderCrudLib {
             e.printStackTrace();
         }
         return folderNames;
+    }
+
+    public static String readFileData(String sourcePath) {
+        String data = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile())
+                data = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    private static String readFileData(File sourceFile) {
+        String data = null;
+        try {
+            if (sourceFile.exists() && sourceFile.isFile())
+                data = FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
     public static boolean deleteFileFolder(String sourcePath) {

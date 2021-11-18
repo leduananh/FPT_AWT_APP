@@ -11,5 +11,7 @@ public interface FileFolderCrudService {
     public void listFilesDetail();
     public void mergeFileData();
     public void appendFileContent();
+    public void readFileData();
+    public void writeDataToFile();
     public void deleteFileFolder();
 }

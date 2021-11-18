@@ -11,6 +11,8 @@ public enum AppFunctionsEnum {
     LIST_FILES_DETAIL("listFilesDetail", "get files and subdirectories detail from file/folder location (sourcePath) with response status store in variable (undefined)", true),
     MERGE_FILE_DATA("mergeFileData", "merge file from file location (sourcePath) to target file location (targetPath) and status store in local variable (undefined)", true),
     APPEND_FILE_CONTENT("appendFileContent", "append new content (newContent) to source file (sourcePath) with response data (undefined)", true),
+    READ_FILE_DATA("readFileData", "read data from source file (sourcePath) with file data response in variable (undefined)", true),
+    WRITE_DATA_TO_FILE("writeDataToFile", "write data (data)  to source file (sourcePath) with response status in variable (undefined)", true),
     DELETE_FILE_FOLDER("deleteFileFolder", "delete file/folder from location (path) with response status (undefined)", false),
     ;
 

@@ -1,6 +1,6 @@
 package com.fpt.service;
 
-import com.fpt.folderHandleLib.FileFolderCrudLib;
+import com.fpt.folderHandleLib.FileFolderLib;
 
 import java.util.Scanner;
 import java.util.Set;
@@ -12,7 +12,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void createFileFolder() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to create: ");
-        boolean isCreated = FileFolderCrudLib.createFileFolder(sourcePath);
+        boolean isCreated = FileFolderLib.createFileFolder(sourcePath);
         System.out.println("respond status: " + isCreated);
     }
 
@@ -20,14 +20,14 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     public void moveFileFolder() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
         String targetPath = readText("input your targetPath file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
-        boolean isMoved = FileFolderCrudLib.moveFileFolder(sourcePath, targetPath);
+        boolean isMoved = FileFolderLib.moveFileFolder(sourcePath, targetPath);
         System.out.println("respond status: " + isMoved);
     }
 
     @Override
     public void checkFileFolderExist() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to checking: ");
-        boolean isExist = FileFolderCrudLib.checkFileFolderExists(sourcePath);
+        boolean isExist = FileFolderLib.checkFileFolderExists(sourcePath);
         System.out.println("respond status: " + isExist);
     }
 
@@ -35,28 +35,28 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     public void renameFileFolder() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
         String newName = readText("input your new file/folder name: ");
-        boolean isRenamed = FileFolderCrudLib.renameFileFolder(sourcePath, newName);
+        boolean isRenamed = FileFolderLib.renameFileFolder(sourcePath, newName);
         System.out.println("respond status: " + isRenamed);
     }
 
     @Override
     public void listFileFolderNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        Set<String> fileFolderNames = FileFolderCrudLib.listFileFolderNames(sourcePath);
+        Set<String> fileFolderNames = FileFolderLib.listFileFolderNames(sourcePath);
         fileFolderNames.forEach(name -> System.out.println("+ " + name));
     }
 
     @Override
     public void listFileNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        Set<String> fileNames = FileFolderCrudLib.listFileNames(sourcePath);
+        Set<String> fileNames = FileFolderLib.listFileNames(sourcePath);
         fileNames.forEach(name -> System.out.println("+ " + name));
     }
 
     @Override
     public void listFolderNames() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        Set<String> FolderNames = FileFolderCrudLib.listFolderNames(sourcePath);
+        Set<String> FolderNames = FileFolderLib.listFolderNames(sourcePath);
         FolderNames.forEach(name -> System.out.println("+ " + name));
     }
 
@@ -69,7 +69,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     public void mergeFileData() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to merge: ");
         String targetPath = readText("input your targetPath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to merge: ");
-        boolean isMerge = FileFolderCrudLib.mergeFileData(sourcePath, targetPath);
+        boolean isMerge = FileFolderLib.mergeFileData(sourcePath, targetPath);
         System.out.println("respond status: " + isMerge);
     }
 
@@ -77,14 +77,29 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     public void appendFileContent() {
         String newData = readText("input your new data to append to source file: ");
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
-        boolean isAppend = FileFolderCrudLib.appendFileContent(newData, sourcePath);
+        boolean isAppend = FileFolderLib.appendFileContent(newData, sourcePath);
         System.out.println("respond status: " + isAppend);
+    }
+
+    @Override
+    public void readFileData() {
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        String data = FileFolderLib.readFileData(sourcePath);
+        System.out.println("respond data: " + data);
+    }
+
+    @Override
+    public void writeDataToFile() {
+        String newData = readText("input your new data to append to source file: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to rename: ");
+        boolean isWrite = FileFolderLib.writeDataToFile(newData, sourcePath);
+        System.out.println("respond status: " + isWrite);
     }
 
     @Override
     public void deleteFileFolder() {
         String sourcePath = readText("input your sourcePath to delete file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
-        boolean isRenamed = FileFolderCrudLib.deleteFileFolder(sourcePath);
+        boolean isRenamed = FileFolderLib.deleteFileFolder(sourcePath);
         System.out.println("respond status: " + isRenamed);
     }
 
