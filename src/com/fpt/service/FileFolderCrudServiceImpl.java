@@ -128,7 +128,8 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void fileFolderAttributes() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get file/folder size: ");
-        LinkedHashMap attributes = FileFolderLib.getFileFolderAttributes(sourcePath);
+        String attributesJson = FileFolderLib.getFileFolderAttributes(sourcePath);
+        System.out.println("attributes: \n" + attributesJson);
         pressToContinue("press ENTER to back to main menu...");
     }
 
@@ -167,7 +168,6 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     private void pressToContinue(String title) {
         System.out.println(title);
         scanner.nextLine();
-        scanner.close();
     }
 
 

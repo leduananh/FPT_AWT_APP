@@ -1,6 +1,8 @@
 package com.fpt.folderHandleLib;
 
+import com.fpt.folderHandleLib.dto.FileFolderAttributesDto;
 import com.google.common.io.Files;
+import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -301,49 +303,87 @@ public class FileFolderLib {
         return size;
     }
 
-    public static LinkedHashMap<String, String> getFileFolderAttributes(String sourcePath) {
-        LinkedHashMap<String, String> fileFolderAttributes = new LinkedHashMap<>();
+    private static Long getFileFolderSizeByte(String sourcePath) {
+        Long size = 0l;
         try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile()) // file size
+                    size = FileUtils.sizeOf(sourceFile);
+                else if (sourceFile.isDirectory()) // directory size
+                    size = FileUtils.sizeOfDirectory(sourceFile);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
+
+    private static Long getFileFolderSizeByte(File sourceFile) {
+        Long size = 0l;
+        try {
+            if (sourceFile.exists()) {
+                if (sourceFile.isFile()) // file size
+                    size = FileUtils.sizeOf(sourceFile);
+                else if (sourceFile.isDirectory()) // directory size
+                    size = FileUtils.sizeOfDirectory(sourceFile);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
+
+    public static String getFileFolderAttributes(String sourcePath) {
+        String attributesJson = null;
+        try {
+            FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             if (checkFileFolderExists(processedSourcePath)) {
                 BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(processedSourcePath);
                 if (basicFileAttributes.isRegularFile() || basicFileAttributes.isDirectory())
-                    fileFolderAttributes.put("name", getFileFolderNameFromPath(processedSourcePath));
-                else fileFolderAttributes.put("name", sourcePath);
-                fileFolderAttributes.put("size", humanReadableByteCountBin(basicFileAttributes.size()));
-                fileFolderAttributes.put("creationDateTime", getFileFolderCreationDate(basicFileAttributes));
-                fileFolderAttributes.put("lastAccessDateTime", getFileFolderLastAccessDate(basicFileAttributes));
-                fileFolderAttributes.put("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
-                fileFolderAttributes.put("isFile", basicFileAttributes.isRegularFile() + "");
-                fileFolderAttributes.put("isDirectory", basicFileAttributes.isDirectory() + "");
-                fileFolderAttributes.put("isOther", basicFileAttributes.isOther() + "");
-                fileFolderAttributes.put("isSymbolicLink", basicFileAttributes.isSymbolicLink() + "");
+                    fileFolderAttributesDto.setName(getFileFolderNameFromPath(processedSourcePath));
+                else fileFolderAttributesDto.setName(sourcePath);
+                Long sizeByte = getFileFolderSizeByte(processedSourcePath);
+                fileFolderAttributesDto.setSizeByte(sizeByte);
+                fileFolderAttributesDto.setSizeText(humanReadableByteCountBin(sizeByte));
+                fileFolderAttributesDto.setCreationDateTime(getFileFolderCreationDate(basicFileAttributes));
+                fileFolderAttributesDto.setLastModifiedDateTime(getFileFolderLastModifiedDate(basicFileAttributes));
+                fileFolderAttributesDto.setLastAccessDateTime(getFileFolderLastAccessDate(basicFileAttributes));
+                fileFolderAttributesDto.setFile(basicFileAttributes.isRegularFile());
+                fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
+                fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
+                fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
+                attributesJson = new Gson().toJson(fileFolderAttributesDto, FileFolderAttributesDto.class);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return fileFolderAttributes;
+        return attributesJson;
     }
 
-    private static LinkedHashMap<String, String> getFileFolderAttributes(File sourceFile) {
-        LinkedHashMap<String, String> fileFolderAttributes = new LinkedHashMap<>();
+    private static FileFolderAttributesDto getFileFolderAttributes(File sourceFile) {
+        FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
         try {
             if (sourceFile.exists()) {
                 BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourceFile.getAbsolutePath());
-                fileFolderAttributes.put("name", sourceFile.getName());
-                fileFolderAttributes.put("size", humanReadableByteCountBin(basicFileAttributes.size()));
-                fileFolderAttributes.put("creationDateTime", getFileFolderCreationDate(basicFileAttributes));
-                fileFolderAttributes.put("lastAccessDateTime", getFileFolderLastAccessDate(basicFileAttributes));
-                fileFolderAttributes.put("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
-                fileFolderAttributes.put("isFile", basicFileAttributes.isRegularFile() + "");
-                fileFolderAttributes.put("isDirectory", basicFileAttributes.isDirectory() + "");
-                fileFolderAttributes.put("isOther", basicFileAttributes.isOther() + "");
-                fileFolderAttributes.put("isSymbolicLink", basicFileAttributes.isSymbolicLink() + "");
+                fileFolderAttributesDto.setName(sourceFile.getName());
+                Long sizeByte = getFileFolderSizeByte(sourceFile);
+                fileFolderAttributesDto.setSizeByte(sizeByte);
+                fileFolderAttributesDto.setSizeText(humanReadableByteCountBin(sizeByte));
+                fileFolderAttributesDto.setCreationDateTime(getFileFolderCreationDate(basicFileAttributes));
+                fileFolderAttributesDto.setLastModifiedDateTime(getFileFolderLastModifiedDate(basicFileAttributes));
+                fileFolderAttributesDto.setLastAccessDateTime(getFileFolderLastAccessDate(basicFileAttributes));
+                fileFolderAttributesDto.setFile(basicFileAttributes.isRegularFile());
+                fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
+                fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
+                fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return fileFolderAttributes;
+        return fileFolderAttributesDto;
     }
 
     public static String getFileFolderCreationDate(String sourcePath) {
