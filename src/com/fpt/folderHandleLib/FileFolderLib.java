@@ -16,6 +16,7 @@ import java.text.StringCharacterIterator;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -300,26 +301,49 @@ public class FileFolderLib {
         return size;
     }
 
-    public static String getFileFolderAttribute(String sourcePath) {
-//        String size = null;
-//        try {
-//            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-//            if (checkFileFolderExists(processedSourcePath)) {
-//                BasicFileAttributeView basicView = java.nio.file.Files.getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class);
-//                BasicFileAttributes basicAttribs = basicView.readAttributes();
-//
-//                LocalDateTime localDateTime = basicAttribs.lastAccessTime()
-//                        .toInstant()
-//                        .atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID))
-//                        .toLocalDateTime();
-//                System.out.println(localDateTime.format(
-//                        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return size;
-        return null;
+    public static LinkedHashMap<String, String> getFileFolderAttributes(String sourcePath) {
+        LinkedHashMap<String, String> fileFolderAttributes = new LinkedHashMap<>();
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            if (checkFileFolderExists(processedSourcePath)) {
+                BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(processedSourcePath);
+                if (basicFileAttributes.isRegularFile() || basicFileAttributes.isDirectory())
+                    fileFolderAttributes.put("name", getFileFolderNameFromPath(processedSourcePath));
+                else fileFolderAttributes.put("name", sourcePath);
+                fileFolderAttributes.put("size", humanReadableByteCountBin(basicFileAttributes.size()));
+                fileFolderAttributes.put("creationDateTime", getFileFolderCreationDate(basicFileAttributes));
+                fileFolderAttributes.put("lastAccessDateTime", getFileFolderLastAccessDate(basicFileAttributes));
+                fileFolderAttributes.put("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
+                fileFolderAttributes.put("isFile", basicFileAttributes.isRegularFile() + "");
+                fileFolderAttributes.put("isDirectory", basicFileAttributes.isDirectory() + "");
+                fileFolderAttributes.put("isOther", basicFileAttributes.isOther() + "");
+                fileFolderAttributes.put("isSymbolicLink", basicFileAttributes.isSymbolicLink() + "");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileFolderAttributes;
+    }
+
+    private static LinkedHashMap<String, String> getFileFolderAttributes(File sourceFile) {
+        LinkedHashMap<String, String> fileFolderAttributes = new LinkedHashMap<>();
+        try {
+            if (sourceFile.exists()) {
+                BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourceFile.getAbsolutePath());
+                fileFolderAttributes.put("name", sourceFile.getName());
+                fileFolderAttributes.put("size", humanReadableByteCountBin(basicFileAttributes.size()));
+                fileFolderAttributes.put("creationDateTime", getFileFolderCreationDate(basicFileAttributes));
+                fileFolderAttributes.put("lastAccessDateTime", getFileFolderLastAccessDate(basicFileAttributes));
+                fileFolderAttributes.put("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
+                fileFolderAttributes.put("isFile", basicFileAttributes.isRegularFile() + "");
+                fileFolderAttributes.put("isDirectory", basicFileAttributes.isDirectory() + "");
+                fileFolderAttributes.put("isOther", basicFileAttributes.isOther() + "");
+                fileFolderAttributes.put("isSymbolicLink", basicFileAttributes.isSymbolicLink() + "");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileFolderAttributes;
     }
 
     public static String getFileFolderCreationDate(String sourcePath) {
@@ -330,6 +354,10 @@ public class FileFolderLib {
         return date;
     }
 
+    private static String getFileFolderCreationDate(BasicFileAttributes basicFileAttributes) {
+        return toDateStringFromFileTime(basicFileAttributes.creationTime());
+    }
+
     public static String getFileFolderLastModifiedDate(String sourcePath) {
         String date = null;
         String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
@@ -338,12 +366,20 @@ public class FileFolderLib {
         return date;
     }
 
+    private static String getFileFolderLastModifiedDate(BasicFileAttributes basicFileAttributes) {
+        return toDateStringFromFileTime(basicFileAttributes.lastModifiedTime());
+    }
+
     public static String getFileFolderLastAccessDate(String sourcePath) {
         String date = null;
         String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
         if (checkFileFolderExists(processedSourcePath))
             date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).lastAccessTime());
         return date;
+    }
+
+    private static String getFileFolderLastAccessDate(BasicFileAttributes basicFileAttributes) {
+        return toDateStringFromFileTime(basicFileAttributes.lastAccessTime());
     }
 
     private static BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
@@ -410,6 +446,12 @@ public class FileFolderLib {
             nameOrPath = file.getName();
         }
         return nameOrPath.indexOf(".") != -1;
+    }
+
+    private static String getFileFolderNameFromPath(String sourcePath) {
+        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        File sourceFile = new File(processedSourcePath);
+        return sourceFile.exists() ? sourceFile.getName() : "";
     }
 
     private static String replaceFileFolderPathName(String path, String replaceName) {

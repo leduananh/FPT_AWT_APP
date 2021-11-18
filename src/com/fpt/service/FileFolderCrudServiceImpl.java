@@ -2,6 +2,7 @@ package com.fpt.service;
 
 import com.fpt.folderHandleLib.FileFolderLib;
 
+import java.util.LinkedHashMap;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -68,7 +69,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     }
 
     @Override
-    public void listFilesDetail() {
+    public void listFileFolderAttributes() {
 
     }
 
@@ -127,7 +128,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void fileFolderAttributes() {
         String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get file/folder size: ");
-        FileFolderLib.getFileFolderAttribute(sourcePath);
+        LinkedHashMap attributes = FileFolderLib.getFileFolderAttributes(sourcePath);
         pressToContinue("press ENTER to back to main menu...");
     }
 
