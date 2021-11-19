@@ -162,7 +162,7 @@ public class FileFolderLib {
                         .map(File::getName)
                         .collect(Collectors.toSet());
                 if (fileNames != null && fileNames.size() != 0)
-                    fileNamesJson = new Gson().toJson(fileNamesJson, Set.class);
+                    fileNamesJson = new Gson().toJson(fileNames, Set.class);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -184,7 +184,7 @@ public class FileFolderLib {
             if (sourceFile.exists() && targetFile.exists() && sourceFile.isFile() && targetFile.isFile()) {
                 String data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
                 isMerge = appendFileContent(data, targetFile);
-                sourceFile.deleteOnExit();
+                sourceFile.delete();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -204,8 +204,7 @@ public class FileFolderLib {
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists()) {
                 if (sourceFile.isFile() && !newData.isEmpty()) {
-                    FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
-                    isWrite = true;
+                    isWrite = appendFileContent(newData, sourceFile);
                 }
             } else {
                 if (createFileFolder(sourceFile)) {
@@ -232,8 +231,8 @@ public class FileFolderLib {
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
                 String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
                 FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
+                isAppend = true;
             }
-            isAppend = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -254,7 +253,7 @@ public class FileFolderLib {
                         .map(File::getName)
                         .collect(Collectors.toSet());
                 if (fileNames != null && fileNames.size() != 0)
-                    folderNamesJson = new Gson().toJson(folderNamesJson, Set.class);
+                    folderNamesJson = new Gson().toJson(fileNames, Set.class);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -558,7 +557,7 @@ public class FileFolderLib {
             newData = newData.trim();
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
                 String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
-                FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
+                FileUtils.writeStringToFile(sourceFile, currentData.trim() + "\n" + newData, LIB_DEFAULT_CHARSET);
             }
             isAppend = true;
         } catch (IOException e) {

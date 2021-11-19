@@ -9,7 +9,7 @@ public enum AppFunctionsEnum {
     LIST_FILE_NAMES(6, "listFileNames", "list files name from source location [1] with response data store in variable [jsonStringArray result];", true),
     LIST_FOLDER_NAMES(7, "listFolderNames", "list subdirectories name from source location [1] with response data store in variable [jsonStringArray result];", true),
     MERGE_FILE_DATA(8, "mergeFileData", "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result];", true),
-    APPEND_FILE_CONTENT(9, "appendFileContent", "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result];", true),
+    APPEND_FILE_CONTENT(9, "appendFileContent", "append new content [1] to exist source file [2] with response status store in local variable [boolean result];", true),
     READ_FILE_DATA(10, "readFileData", "read data from source path [1] with response data store in variable [text result];", true),
     WRITE_DATA_TO_FILE(11, "writeDataToFile", "write data [1] to source file [2] , create file if not exist with response status store in local variable [boolean result];", true),
     OVER_WRITE_FILE(12, "overWriteFileData", "override new data (data) to file location (filePath) with response data in variable (undefined)", true),
