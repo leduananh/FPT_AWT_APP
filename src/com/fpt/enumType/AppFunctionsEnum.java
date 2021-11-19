@@ -13,13 +13,15 @@ public enum AppFunctionsEnum {
     READ_FILE_DATA(10, "readFileData", "read data from source path [1] with response data store in variable [text result];", true),
     WRITE_DATA_TO_FILE(11, "writeDataToFile", "write data [1] to source file [2] , create file if not exist with response status store in local variable [boolean result];", true),
     OVER_WRITE_FILE(12, "overWriteFileData", "override new data (data) to file location (filePath) with response data in variable (undefined)", true),
-    FILE_FOLDER_SIZE(13, "getFileFolderSize", "get file/folder size from [1] with response data store in variable [text result];", true),
+    FILE_FOLDER_SIZE(13, "fileFolderSize", "get file/folder size from [1] with response data store in variable [text result];", true),
     FILE_FOLDER_ATTRIBUTES(14, "fileFolderAttributes", "get attributes from file/directory path [1] with response data store in variable [jsonObject result];", true),
     LIST_FILE_FOLDER_ATTRIBUTES(15, "listFileFolderAttributes", "list files and subdirectories detail from directory source location [1] with response data store in variable [jsonObjectArray result];", true),
     FILE_FOLDER_CREATION_DATE(16, "fileFolderCreationDate", "get created date time from file/directory path [1] with response data store in variable [text result];", true),
     FILE_FOLDER_LAST_MODIFIED_DATE(17, "fileFolderLastModifiedDate", "get last modified date time from file/directory path [1] with response data store in variable [text result];", true),
     FILE_FOLDER_LAST_ACCESS_DATE(18, "fileFolderLastAccessDate", "get last accessed date time from file/directory path [1] with response data store in variable [text result];", true),
-    DELETE_FILE_FOLDER(19, "deleteFileFolder", "delete file/directory from source location path [1] with response data store in variable [boolean result];", false),
+    FILE_HAS_KEY_WORD(19, "fileHasKeyword", "checking keyword [1] is exists in file path [2] with response status store in local variable [boolean result];", true),
+    FILE_DATA_AT_ROW_INDEX(20, "fileDataAtRowIndex", "get file data at row index [1] from source file [2] with response status store in local variable [text result];", true),
+    DELETE_FILE_FOLDER(21, "deleteFileFolder", "delete file/directory from source location path [1] with response data store in variable [boolean result];", false),
     ;
 
     private final int index;

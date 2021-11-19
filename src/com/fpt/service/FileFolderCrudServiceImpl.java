@@ -2,9 +2,7 @@ package com.fpt.service;
 
 import com.fpt.folderHandleLib.FileFolderLib;
 
-import java.util.LinkedHashMap;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 public class FileFolderCrudServiceImpl implements FileFolderCrudService {
@@ -163,9 +161,27 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void overWriteFileData() {
         String newData = readText("input your new data to append to source file: ");
-        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to get last access date: ");
+        String sourcePath = readText("input your sourcePath file/folder \n is absolute path or relative path include parent directory and file name starting from project root to over write file: ");
         boolean status = FileFolderLib.overWriteFileData(newData, sourcePath);
         System.out.println("status: " + status);
+        pressToContinue("press ENTER to back to main menu...");
+    }
+
+    @Override
+    public void fileHasKeyword() {
+        String keyword = readText("input your keyword to checking: ");
+        String sourcePath = readText("input your sourcePath file \n is absolute path or relative path include parent directory and file name starting from project root to check keyword exist: ");
+        boolean status = FileFolderLib.fileHasKeyword(keyword, sourcePath);
+        System.out.println("is exist: " + status);
+        pressToContinue("press ENTER to back to main menu...");
+    }
+
+    @Override
+    public void fileDataAtRowIndex() {
+        int rowIndex = readInt("input your row index: ");
+        String sourcePath = readText("input your sourcePath file \n is absolute path or relative path include parent directory and file name starting from project root to get row data: ");
+        String rowData = FileFolderLib.fileDataAtRowIndex(rowIndex, sourcePath);
+        System.out.println("row data: " + rowData);
         pressToContinue("press ENTER to back to main menu...");
     }
 
@@ -182,7 +198,6 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
         scanner.nextLine();
     }
 
-
     private String readText(String request) {
         String input = null;
         while (true) {
@@ -193,6 +208,21 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
                     throw new Exception("do not empty...");
                 else if (isNumeric(input))
                     throw new Exception("only text...");
+                break;
+            } catch (Exception e) {
+                System.out.println("error: " + e.getMessage());
+            }
+        }
+        return input;
+    }
+
+    private int readInt(String request) {
+        int input = 0;
+        while (true) {
+            try {
+                printRequest(request);
+                String data = scanner.nextLine();
+                input = Integer.parseInt(data);
                 break;
             } catch (Exception e) {
                 System.out.println("error: " + e.getMessage());

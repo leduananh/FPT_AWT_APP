@@ -18,6 +18,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -334,12 +335,12 @@ public class FileFolderLib {
     public static String listFileFolderAttributes(String sourcePath) {
         String attributesJson = null;
         try {
-            FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
+            List<FileFolderAttributesDto> attributes = new ArrayList<>();
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             Set<File> files = listFileFolder(processedSourcePath);
-            List<FileFolderAttributesDto> attributes = files.stream().map(file -> getFileFolderAttributes(file)).collect(Collectors.toList());
-            if (attributes != null && attributes.size() != 0)
-                attributesJson = new Gson().toJson(attributes, List.class);
+            if (files != null && files.size() != 0)
+                attributes = files.stream().map(file -> getFileFolderAttributes(file)).collect(Collectors.toList());
+            attributesJson = new Gson().toJson(attributes, List.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -381,6 +382,46 @@ public class FileFolderLib {
         if (checkFileFolderExists(processedSourcePath))
             date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).lastAccessTime());
         return date;
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "checking keyword [1] is exists in file path [2] with response status store in local variable [boolean result]; "
+            + "keyword - Other - is text content; "
+            + "sourcePath - File - is fileName can be relative/absolute path;")
+    public static boolean fileHasKeyword(String keyword, String sourcePath) {
+        boolean isExist = false;
+        try {
+            keyword = keyword.trim();
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile())
+                isExist = readFileData(sourceFile).trim().contains(keyword);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isExist;
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "get file data at row index [1] from source file [2] with response status store in local variable [text result]; "
+            + "index - Other - is row index (number); "
+            + "sourcePath - File - is fileName can be relative/absolute path;")
+    public static String fileDataAtRowIndex(int rowIndex, String sourcePath) {
+        String rowData = null;
+        try {
+            if (rowIndex >= 0) {
+                String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+                File sourceFile = new File(processedSourcePath);
+                if (sourceFile.exists() && sourceFile.isFile()) {
+                    List<String> lines = FileUtils.readLines(sourceFile, LIB_DEFAULT_CHARSET);
+                    if (rowIndex < lines.size())
+                        rowData = lines.get(rowIndex);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rowData;
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -542,7 +583,7 @@ public class FileFolderLib {
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists())
+            if (sourceFile.exists() && sourceFile.isDirectory())
                 files = Stream.of(sourceFile.listFiles())
                         .collect(Collectors.toSet());
         } catch (Exception e) {

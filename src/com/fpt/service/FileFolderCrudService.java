@@ -39,5 +39,9 @@ public interface FileFolderCrudService {
 
     public void overWriteFileData();
 
+    public void fileHasKeyword();
+
+    public void fileDataAtRowIndex();
+
     public void deleteFileFolder();
 }
