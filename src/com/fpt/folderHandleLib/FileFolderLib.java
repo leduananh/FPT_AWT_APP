@@ -425,17 +425,17 @@ public class FileFolderLib {
             + "keyword - Other - search keyword; "
             + "replaceKeyword - Other - replace keyword; "
             + "sourcePath - File - is fileName can be relative/absolute path;")
-    public static String fileReplaceAll(String keyword, String replaceKeyword, String sourcePath) {
-        String data = null;
+    public static boolean fileReplaceAll(String keyword, String replaceKeyword, String sourcePath) {
+        boolean isReplaced = false;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists() && sourceFile.isFile())
-                data = FileUtils.readLines(sourceFile, LIB_DEFAULT_CHARSET).stream().map(line -> line.replace(keyword, replaceKeyword)).collect(Collectors.joining());
-        } catch (IOException e) {
+                isReplaced = overWriteFileData(readFileData(sourceFile).replace(keyword, replaceKeyword), sourceFile);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return data;
+        return isReplaced;
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -627,6 +627,20 @@ public class FileFolderLib {
             newData = newData.trim();
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
+                FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
+                isOverWrite = true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return isOverWrite;
+    }
+
+    public static boolean overWriteFileData(String newData, File sourceFile) {
+        boolean isOverWrite = false;
+        try {
+            newData = newData.trim();
             if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
                 FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
                 isOverWrite = true;
