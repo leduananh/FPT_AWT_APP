@@ -186,6 +186,16 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     }
 
     @Override
+    public void fileReplaceAll() {
+        String keyword = readText("input your search keyword: ");
+        String replaceKeyword = readText("input your replace keyword: ");
+        String sourcePath = readText("input your sourcePath file \n is absolute path or relative path include parent directory and file name starting from project root to get row data: ");
+        String data = FileFolderLib.fileReplaceAll(keyword, replaceKeyword, sourcePath);
+        System.out.println(" data: " + data);
+        pressToContinue("press ENTER to back to main menu...");
+    }
+
+    @Override
     public void deleteFileFolder() {
         String sourcePath = readText("input your sourcePath to delete file/folder \n is absolute path or relative path include parent directory and file name starting from project root: ");
         boolean isRenamed = FileFolderLib.deleteFileFolder(sourcePath);

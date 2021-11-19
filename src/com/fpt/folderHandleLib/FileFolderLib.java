@@ -403,7 +403,7 @@ public class FileFolderLib {
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get file data at row index [1] from source file [2] with response status store in local variable [text result]; "
+            + "get file data at row index [1] from source file [2] with response data row store in local variable [text result]; "
             + "index - Other - is row index (number); "
             + "sourcePath - File - is fileName can be relative/absolute path;")
     public static String fileDataAtRowIndex(int rowIndex, String sourcePath) {
@@ -422,6 +422,24 @@ public class FileFolderLib {
             e.printStackTrace();
         }
         return rowData;
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "replace keyword [1] with new keyword [2] from file path [3] with response data store in local variable [text result]; "
+            + "keyword - Other - search keyword; "
+            + "replaceKeyword - Other - replace keyword; "
+            + "sourcePath - File - is fileName can be relative/absolute path;")
+    public static String fileReplaceAll(String keyword, String replaceKeyword, String sourcePath) {
+        String data = null;
+        try {
+            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+            File sourceFile = new File(processedSourcePath);
+            if (sourceFile.exists() && sourceFile.isFile())
+                data = FileUtils.readLines(sourceFile, LIB_DEFAULT_CHARSET).stream().map(line -> line.replace(keyword, replaceKeyword)).collect(Collectors.joining());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
     @DescriptorKey("Prefix:ART; "

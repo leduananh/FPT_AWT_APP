@@ -43,5 +43,7 @@ public interface FileFolderCrudService {
 
     public void fileDataAtRowIndex();
 
+    public void fileReplaceAll();
+
     public void deleteFileFolder();
 }
