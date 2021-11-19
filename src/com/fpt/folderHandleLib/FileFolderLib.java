@@ -369,10 +369,6 @@ public class FileFolderLib {
         return date;
     }
 
-    private static String getFileFolderLastModifiedDate(BasicFileAttributes basicFileAttributes) {
-        return toDateStringFromFileTime(basicFileAttributes.lastModifiedTime());
-    }
-
     @DescriptorKey("Prefix:ART; "
             + "get last accessed date time from file/directory path [1] with response data store in variable [text result]; "
             + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
@@ -654,5 +650,9 @@ public class FileFolderLib {
             e.printStackTrace();
         }
         return size;
+    }
+
+    private static String getFileFolderLastModifiedDate(BasicFileAttributes basicFileAttributes) {
+        return toDateStringFromFileTime(basicFileAttributes.lastModifiedTime());
     }
 }

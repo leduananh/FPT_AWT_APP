@@ -21,7 +21,7 @@ public enum AppFunctionsEnum {
     FILE_FOLDER_LAST_ACCESS_DATE(18, "fileFolderLastAccessDate", "get last accessed date time from file/directory path [1] with response data store in variable [text result];", true),
     FILE_HAS_KEY_WORD(19, "fileHasKeyword", "checking keyword [1] is exists in file path [2] with response status store in local variable [boolean result];", true),
     FILE_DATA_AT_ROW_INDEX(20, "fileDataAtRowIndex", "get file data at row index [1] from source file [2] with response data row store in local variable [text result];", true),
-    FILE_REPLACE_ALL(20, "fileReplaceAll", "get file data at row index [1] from source file [2] with response data row store in local variable [text result];", true),
+    FILE_REPLACE_ALL(20, "fileReplaceAll", "replace keyword [1] with new keyword [2] from file path [3] with response data store in local variable [text result];", true),
     DELETE_FILE_FOLDER(21, "deleteFileFolder", "delete file/directory from source location path [1] with response data store in variable [boolean result];", false),
     ;
 
