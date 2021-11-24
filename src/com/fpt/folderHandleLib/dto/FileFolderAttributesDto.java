@@ -13,21 +13,9 @@ public class FileFolderAttributesDto implements Serializable {
     private boolean isDirectory;
     private boolean isOther;
     private boolean isSymbolicLink;
+    private boolean isHidden;
 
     public FileFolderAttributesDto() {
-    }
-
-    public FileFolderAttributesDto(String name, String sizeText, long sizeByte, String creationDateTime, String lastAccessDateTime, String lastModifiedDateTime, boolean isFile, boolean isDirectory, boolean isOther, boolean isSymbolicLink) {
-        this.name = name;
-        this.sizeText = sizeText;
-        this.sizeByte = sizeByte;
-        this.creationDateTime = creationDateTime;
-        this.lastAccessDateTime = lastAccessDateTime;
-        this.lastModifiedDateTime = lastModifiedDateTime;
-        this.isFile = isFile;
-        this.isDirectory = isDirectory;
-        this.isOther = isOther;
-        this.isSymbolicLink = isSymbolicLink;
     }
 
     public String getName() {
@@ -108,5 +96,13 @@ public class FileFolderAttributesDto implements Serializable {
 
     public void setSymbolicLink(boolean symbolicLink) {
         isSymbolicLink = symbolicLink;
+    }
+
+    public boolean isHidden() {
+        return isHidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        isHidden = hidden;
     }
 }

@@ -1,49 +1,52 @@
 package com.fpt.service;
 
-public interface FileFolderCrudService {
-    public void createFileFolder();
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
-    public void moveFileFolder();
+public interface FileFolderCrudService {
+    public void createFolder() throws IOException;
+
+    public void moveFileFolder() throws IOException;
 
     public void checkFileFolderExist();
 
-    public void renameFileFolder();
+    public void renameFileFolder() throws IOException;
 
-    public void listFileFolderNames();
+    public void listFileFolderNames() throws IOException;
 
-    public void listFileNames();
+    public void listFileNames() throws FileNotFoundException;
 
-    public void listFolderNames();
+    public void listFolderNames() throws FileNotFoundException;
 
-    public void listFileFolderAttributes();
+    public void listFileFolderAttributes() throws FileNotFoundException;
 
-    public void mergeFileData();
+    public void mergeFileData() throws IOException;
 
-    public void appendFileContent();
+    public void appendFileContent() throws IOException;
 
-    public void readFileData();
+    public void readFileData() throws IOException;
 
-    public void writeDataToFile();
+    public void writeDataToFile() throws IOException;
 
-    public void overWriteFile();
+    public void overWriteFile() throws IOException;
 
-    public void fileFolderSize();
+    public void fileFolderSize() throws FileNotFoundException;
 
-    public void fileFolderAttributes();
+    public void fileFolderAttributes() throws FileNotFoundException;
 
-    public void fileFolderCreationDate();
+    public void fileFolderCreationDate() throws FileNotFoundException;
 
-    public void fileFolderLastModifiedDate();
+    public void fileFolderLastModifiedDate() throws FileNotFoundException;
 
-    public void fileFolderLastAccessDate();
+    public void fileFolderLastAccessDate() throws FileNotFoundException;
 
     public void overWriteFileData();
 
-    public void fileHasKeyword();
+    public void fileHasKeyword() throws FileNotFoundException;
 
-    public void fileDataAtRowIndex();
+    public void fileDataAtRowIndex() throws IOException;
 
-    public void fileReplaceAll();
+    public void fileReplaceAll() throws FileNotFoundException;
 
-    public void deleteFileFolder();
+    public void deleteFileFolder() throws IOException;
 }

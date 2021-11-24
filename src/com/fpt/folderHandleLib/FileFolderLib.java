@@ -2,18 +2,22 @@ package com.fpt.folderHandleLib;
 
 import com.fpt.folderHandleLib.dto.FileFolderAttributesDto;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.apache.commons.io.FileUtils;
 
 import javax.management.DescriptorKey;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.spi.FileSystemProvider;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.time.ZoneId;
@@ -26,19 +30,21 @@ import java.util.stream.Stream;
 
 public class FileFolderLib {
 
-    private static final String SEPARATOR = "\\";
-    private static final Charset LIB_DEFAULT_CHARSET = StandardCharsets.UTF_8;
-    private static final String LIB_DEFAULT_ZONE_ID = "Asia/Ho_Chi_Minh";
-    private static final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
+    public final String SEPARATOR = "\\";
+    public final Charset LIB_DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    public final String LIB_DEFAULT_ZONE_ID = "Asia/Ho_Chi_Minh";
+    public final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
+    public final String LIB_DEFAULT_FOLDER = "data";
 
     @DescriptorKey("Prefix:ART; "
-            + "create new file/directories from [1] with response status store in variable [boolean result]; "
-            + "sourcePath - File - is fileName/folderName/relative/absolute path;")
-    public static boolean createFileFolder(String sourcePath) {
+            + "Create new file/directories from file/directory path [1] location; "
+            + "sourcePath - Other - is relative/absolute file or directory path location;")
+    public boolean createFolder(String sourcePath) throws IOException {
         boolean isCreated = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
+        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        File sourceFile = new File(processedSourcePath);
+        System.out.println(sourceFile.isFile());
+        if (!sourceFile.exists()) {
             if (isFile(sourceFile.getName(), true)) {
                 Files.createParentDirs(sourceFile);
                 Files.touch(sourceFile);
@@ -46,426 +52,413 @@ public class FileFolderLib {
             } else {
                 isCreated = sourceFile.mkdirs();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            if (sourceFile.isDirectory())
+                throw new IllegalArgumentException("directory from " + sourceFile.getAbsolutePath() + " path is already created");
+            else
+                throw new FileNotFoundException("file from " + sourceFile.getAbsolutePath() + " path is already created");
         }
         return isCreated;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "move file/directory from source path [1] to destination location [2] with response status store in variable [boolean result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
-            + "targetPath - File - is destination folder can be relative/absolute path;")
-    public static boolean moveFileFolder(String sourcePath, String targetPath) {
-        boolean isMoved = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            String processedTargetPath = isPathAbsolute(targetPath) ? sourcePath : toAbsolute(targetPath);
-            File sourceFile = new File(processedSourcePath);
-            File targetFile = new File(processedTargetPath);
-            if (sourceFile.exists()) {
-                if (sourceFile.isFile() && targetFile.exists() && targetFile.isFile()) {
-                    //move file to dir
-                    FileUtils.moveFile(sourceFile, targetFile);
-                    isMoved = true;
-                } else if (sourceFile.isFile() && targetFile.exists() && targetFile.isDirectory()) {
-                    //move file to dir
-                    FileUtils.moveFileToDirectory(sourceFile, targetFile, true);
-                    isMoved = true;
-                } else if (sourceFile.isDirectory() && targetFile.exists() && targetFile.isDirectory()) {
-                    //move dir to dir
-                    FileUtils.moveDirectoryToDirectory(sourceFile, targetFile, true);
-                    isMoved = true;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            + "Move file/directories from file/directory path [1] location to destination directory path [2] location; "
+            + "sourcePath - File - is relative/absolute file or directory path location; "
+            + "targetPath - File - is destination relative/absolute directory path location;")
+    public boolean moveFileFolder(String sourcePath, String destPath) throws IOException {
+        sourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        destPath = isPathAbsolute(destPath) ? destPath : toAbsolute(destPath);
+        File sourceFile = new File(sourcePath);
+        File destFile = new File(destPath);
+        boolean isCreateDestDir = false;
+        if (!sourceFile.exists()) {
+            final String message = sourceFile + " is not exist";
+            throw new FileNotFoundException(message);
         }
-        return isMoved;
+        if (getParentPath(sourceFile).equals(getParentPath(destFile)) && !destFile.exists()) {
+            // rename current file folder
+            sourceFile.renameTo(destFile);
+            return true;
+        }
+        FileUtils.forceMkdir(destFile);
+        FileUtils.moveToDirectory(sourceFile, destFile, isCreateDestDir);
+        return true;
+    }
+
+    private String getParentPath(File file) {
+        return file.toPath().getParent().toString();
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "check file/directory from source location [1] is exists with response status store in variable [boolean result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static boolean checkFileFolderExists(String sourcePath) {
+            + "Check file/directory from file/directory path [1] location is exists; "
+            + "sourcePath - File - is relative/absolute file or directory path location;")
+    public boolean checkFileFolderExists(String sourcePath) {
         boolean isExist = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            isExist = sourceFile.exists();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        isExist = sourceFile.exists();
         return isExist;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "rename file/directory from source location [1] to new name [2] with response status store in variable [boolean result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
-            + "newName - Other - is fileName/folderName can be relative/absolute path;")
-    public static boolean renameFileFolder(String sourcePath, String newName) {
+            + "Check file/directory from file/directory path [1] location is hidden; "
+            + "sourcePath - File - is relative/absolute file or directory path location;")
+    public boolean checkFileFolderIsHidden(String sourcePath) throws FileNotFoundException {
+        boolean isHidden = false;
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists())
+            isHidden = sourceFile.isHidden();
+        else
+            throw new FileNotFoundException("file from " + sourceFile.getAbsolutePath() + " path is not exist");
+        return isHidden;
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "Rename file/directory from file/directory path [1] location to new name [2]; "
+            + "sourcePath - File - is relative/absolute file or directory path location; "
+            + "newName - Other - is new file/directory name;")
+    public boolean renameFileFolder(String sourcePath, String newName) throws IOException {
         boolean isRenamed = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            String processedNewNamePath = replaceFileFolderPathName(processedSourcePath, newName);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists()) {
-                if (sourceFile.isFile() && isFile(processedNewNamePath, false)) {
-                    // rename file
-                    System.out.println("rename file: " + sourceFile.getPath() + "\nto: " + processedNewNamePath);
-                    sourceFile.renameTo(new File(processedNewNamePath));
-                    isRenamed = true;
-                } else if (sourceFile.isDirectory()) {
-                    // rename directory
-                    System.out.println("rename folder: " + sourceFile.getPath() + "\nto: " + processedNewNamePath);
-                    sourceFile.renameTo(new File(processedNewNamePath));
-                    isRenamed = true;
-                }
+        String processedNewNamePath = replaceFileFolderPathName(sourcePath, newName);
+        System.out.println(sourcePath);
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists()) {
+            if (sourceFile.isFile() && isFile(processedNewNamePath, false)) {
+                // rename file
+                System.out.println("rename file: " + sourceFile.getPath() + "\nto: " + processedNewNamePath);
+                sourceFile.renameTo(new File(processedNewNamePath));
+                isRenamed = true;
+            } else {
+                // rename directory
+                System.out.println("rename folder: " + sourceFile.getPath() + "\nto: " + processedNewNamePath);
+                sourceFile.renameTo(new File(processedNewNamePath));
+                isRenamed = true;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            if (sourceFile.isDirectory())
+                throw new FileNotFoundException(
+                        "directory from " + sourceFile.getAbsolutePath() + " path is not exist");
+            else
+                throw new FileNotFoundException("file from " + sourceFile.getAbsolutePath() + " path is not exist");
         }
         return isRenamed;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "list files and subdirectories name from source location [1] with response data store in variable [jsonStringArray result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String listFileFolderNames(String sourcePath) {
+            + "List files and subdirectories name from directory path [1] location; "
+            + "sourcePath - File - is relative/absolute directory path location;")
+    public String listFileFolderNames(String sourcePath) throws IOException {
         String namesJson = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isDirectory()) {
-                Set<String> fileFolderNames = Stream.of(sourceFile.listFiles())
-                        .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
-                        .collect(Collectors.toSet());
-                if (fileFolderNames != null && fileFolderNames.size() != 0)
-                    namesJson = new Gson().toJson(fileFolderNames, Set.class);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isDirectory()) {
+            Set<String> fileFolderNames = Stream.of(sourceFile.listFiles())
+                    .map(file -> file.isFile() ? file.getName() + " - file" : file.getName() + " - folder")
+                    .collect(Collectors.toSet());
+            if (fileFolderNames != null && fileFolderNames.size() != 0)
+                namesJson = new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderNames, Set.class);
+        } else if (sourceFile.isFile())
+            throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a file");
+        else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " is not exist");
         return namesJson;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "list files name from source location [1] with response data store in variable [jsonStringArray result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String listFileNames(String sourcePath) {
+            + "List files name from directory path [1] location; "
+            + "sourcePath - File - is relative/absolute directory path location;")
+    public String listFileNames(String sourcePath) throws FileNotFoundException {
         String fileNamesJson = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isDirectory()) {
-                Set<String> fileNames = Stream.of(sourceFile.listFiles())
-                        .filter(file -> file.isFile())
-                        .map(File::getName)
-                        .collect(Collectors.toSet());
-                if (fileNames != null && fileNames.size() != 0)
-                    fileNamesJson = new Gson().toJson(fileNames, Set.class);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isDirectory()) {
+            Set<String> fileNames = Stream.of(sourceFile.listFiles()).filter(file -> file.isFile()).map(File::getName)
+                    .collect(Collectors.toSet());
+            if (fileNames != null && fileNames.size() != 0)
+                fileNamesJson = new GsonBuilder().setPrettyPrinting().create().toJson(fileNames, Set.class);
+        } else if (sourceFile.isDirectory())
+            throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a directory");
+        else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " is not exist");
         return fileNamesJson;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "merge file from source file location [1] to target file location [2] and response status store in local variable [boolean result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path; "
-            + "targetPath - File - is destination folder can be relative/absolute path;")
-    public static boolean mergeFileData(String sourcePath, String targetPath) {
+            + "Merge file from file path [1] location to destination file path [2] location; "
+            + "sourcePath - File - is relative/absolute file path location; "
+            + "targetPath - File - is relative/absolute destination file path location;")
+    public boolean mergeFileData(String sourcePath, String targetPath) throws IOException, FileNotFoundException {
         boolean isMerge = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            String processedTargetPath = isPathAbsolute(targetPath) ? targetPath : toAbsolute(targetPath);
-            File sourceFile = new File(processedSourcePath);
-            File targetFile = new File(processedTargetPath);
-            if (sourceFile.exists() && targetFile.exists() && sourceFile.isFile() && targetFile.isFile()) {
+        File sourceFile = new File(sourcePath);
+        File targetFile = new File(targetPath);
+        if (sourceFile.exists() && targetFile.exists()) {
+            if (sourceFile.isFile() && targetFile.isFile()) {
                 String data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
                 isMerge = appendFileContent(data, targetFile);
-                sourceFile.delete();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            } else
+                throw new IllegalArgumentException("source/target path is not a file");
+        } else
+            throw new FileNotFoundException("source/target path is not exist");
         return isMerge;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "write data [1] to source file [2] , create file if not exist with response status store in local variable [boolean result]; "
-            + "newData - Other - is text content; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static boolean writeDataToFile(String newData, String sourcePath) {
+            + "Write content [1] into bottom of file path [2] location, create file and file parent directories if not exist; "
+            + "content - Other - is text content data; "
+            + "sourcePath - File - is relative/absolute file path location;")
+    public boolean writeDataToFile(String newData, String sourcePath) throws IOException, IllegalArgumentException {
         boolean isWrite = false;
-        try {
-            newData = newData.trim();
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists()) {
-                if (sourceFile.isFile() && !newData.isEmpty()) {
-                    isWrite = appendFileContent(newData, sourceFile);
-                }
-            } else {
+        newData = newData.trim();
+        File sourceFile = new File(sourcePath);
+        if (!newData.isEmpty()) {
+            if (sourceFile.exists() && sourceFile.isFile())
+                isWrite = appendFileContent(newData, sourceFile);
+            else {
                 if (createFileFolder(sourceFile)) {
                     FileUtils.writeStringToFile(sourceFile, newData, LIB_DEFAULT_CHARSET);
                     isWrite = true;
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } else
+            throw new IllegalArgumentException("content is empty");
         return isWrite;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "append new content [1] to exist source file [2] with response status store in local variable [boolean result]; "
+            + "Append new content [1] into existing file path [2] location; "
             + "content - Other - is text content; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static boolean appendFileContent(String newData, String sourcePath) {
+            + "sourcePath - File - is relative/absolute file path;")
+    public boolean appendFileContent(String newData, String sourcePath) throws IOException, FileNotFoundException {
         boolean isAppend = false;
-        try {
-            newData = newData.trim();
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isFile() && !newData.isEmpty()) {
+        newData = newData.trim();
+        File sourceFile = new File(sourcePath);
+        if (!newData.isEmpty()) {
+            if (sourceFile.exists() && sourceFile.isFile()) {
                 String currentData = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
                 FileUtils.writeStringToFile(sourceFile, currentData + "\n" + newData, LIB_DEFAULT_CHARSET);
                 isAppend = true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            } else if (sourceFile.isDirectory())
+                throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a directory");
+            else
+                throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " is not exist");
+        } else
+            throw new IllegalArgumentException("content is empty");
         return isAppend;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "list subdirectories name from source location [1] with response data store in variable [jsonStringArray result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String listFolderNames(String sourcePath) {
+            + "List subdirectories name from directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file path location;")
+    public String listFolderNames(String sourcePath) throws FileNotFoundException {
         String folderNamesJson = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isDirectory()) {
-                Set<String> fileNames = Stream.of(sourceFile.listFiles())
-                        .filter(file -> file.isDirectory())
-                        .map(File::getName)
-                        .collect(Collectors.toSet());
-                if (fileNames != null && fileNames.size() != 0)
-                    folderNamesJson = new Gson().toJson(fileNames, Set.class);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isDirectory()) {
+            Set<String> fileNames = Stream.of(sourceFile.listFiles())
+                    .filter(file -> file.isDirectory())
+                    .map(File::getName).collect(Collectors.toSet());
+            if (fileNames != null && fileNames.size() != 0)
+                folderNamesJson = new GsonBuilder().setPrettyPrinting().create().toJson(fileNames, Set.class);
+        } else if (sourceFile.isFile())
+            throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a file");
+        else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " is not exist");
         return folderNamesJson;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "read data from source path [1] with response data store in variable [text result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String readFileData(String sourcePath) {
+            + "Read data from file path [1] location; "
+            + "sourcePath - File - is relative/absolute file path location;")
+    public String readFileData(String sourcePath) throws IOException, FileNotFoundException {
         String data = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isFile())
-                data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isFile())
+            data = FileUtils.readFileToString(sourceFile, LIB_DEFAULT_CHARSET);
+        else if (sourceFile.isDirectory())
+            throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a directory");
+        else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " is not exist");
         return data;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get file/folder size from [1] with response data store in variable [text result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String getFileFolderSize(String sourcePath) {
+            + "Get readable size from file/directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file path location;")
+    public String getFileFolderSize(String sourcePath) throws FileNotFoundException {
         String size = null;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists()) {
-                if (sourceFile.isFile()) // file size
-                    size = humanReadableByteCountBin(FileUtils.sizeOf(sourceFile));
-                else if (sourceFile.isDirectory()) // directory size
-                    size = humanReadableByteCountBin(FileUtils.sizeOfDirectory(sourceFile));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists()) {
+            if (sourceFile.isFile()) // file size
+                size = humanReadableByteCountBin(FileUtils.sizeOf(sourceFile));
+            else if (sourceFile.isDirectory()) // directory size
+                size = humanReadableByteCountBin(FileUtils.sizeOfDirectory(sourceFile));
+        } else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " path is not exist");
         return size;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get attributes from file/directory path [1] with response data store in variable [jsonObject result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String fileFolderAttributes(String sourcePath) {
+            + "Get attributes detail from  file/directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file/directory path location;")
+    public String fileFolderAttributes(String sourcePath) throws FileNotFoundException {
         String attributesJson = null;
-        try {
-            FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            if (checkFileFolderExists(processedSourcePath)) {
-                BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(processedSourcePath);
-                if (basicFileAttributes.isRegularFile() || basicFileAttributes.isDirectory())
-                    fileFolderAttributesDto.setName(getFileFolderNameFromPath(processedSourcePath));
-                else fileFolderAttributesDto.setName(sourcePath);
-                Long sizeByte = getFileFolderSizeByte(processedSourcePath);
-                fileFolderAttributesDto.setSizeByte(sizeByte);
-                fileFolderAttributesDto.setSizeText(humanReadableByteCountBin(sizeByte));
-                fileFolderAttributesDto.setCreationDateTime(getFileFolderCreationDate(basicFileAttributes));
-                fileFolderAttributesDto.setLastModifiedDateTime(getFileFolderLastModifiedDate(basicFileAttributes));
-                fileFolderAttributesDto.setLastAccessDateTime(getFileFolderLastAccessDate(basicFileAttributes));
-                fileFolderAttributesDto.setFile(basicFileAttributes.isRegularFile());
-                fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
-                fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
-                fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
-                attributesJson = new Gson().toJson(fileFolderAttributesDto, FileFolderAttributesDto.class);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
+        if (checkFileFolderExists(sourcePath)) {
+            BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourcePath);
+            if (basicFileAttributes.isRegularFile() || basicFileAttributes.isDirectory())
+                fileFolderAttributesDto.setName(getFileFolderNameFromPath(sourcePath));
+            else
+                fileFolderAttributesDto.setName(sourcePath);
+            Long sizeByte = getFileFolderSizeByte(sourcePath);
+            fileFolderAttributesDto.setSizeByte(sizeByte);
+            fileFolderAttributesDto.setSizeText(humanReadableByteCountBin(sizeByte));
+            fileFolderAttributesDto.setCreationDateTime(getFileFolderCreationDate(basicFileAttributes));
+            fileFolderAttributesDto.setLastModifiedDateTime(getFileFolderLastModifiedDate(basicFileAttributes));
+            fileFolderAttributesDto.setLastAccessDateTime(getFileFolderLastAccessDate(basicFileAttributes));
+            fileFolderAttributesDto.setFile(basicFileAttributes.isRegularFile());
+            fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
+            fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
+            fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
+            fileFolderAttributesDto.setHidden(checkFileFolderIsHiddenFromPath(sourcePath));
+            attributesJson = new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderAttributesDto, FileFolderAttributesDto.class);
+        } else
+            throw new FileNotFoundException("source from " + sourcePath + " path is not exist");
         return attributesJson;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "list files and subdirectories detail from directory source location [1] with response data store in variable [jsonObjectArray result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String listFileFolderAttributes(String sourcePath) {
+            + "List files and subdirectories attributes detail from directory path [1] location; "
+            + "sourcePath - File - is relative/absolute directory path location;")
+    public String listFileFolderAttributes(String sourcePath) throws FileNotFoundException {
         String attributesJson = null;
-        try {
-            List<FileFolderAttributesDto> attributes = new ArrayList<>();
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            Set<File> files = listFileFolder(processedSourcePath);
+        List<FileFolderAttributesDto> attributes = new ArrayList<>();
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isDirectory()) {
+            Set<File> files = listFileFolder(sourcePath);
             if (files != null && files.size() != 0)
-                attributes = files.stream().map(file -> getFileFolderAttributes(file)).collect(Collectors.toList());
-            attributesJson = new Gson().toJson(attributes, List.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                attributes = files.stream()
+                        .map(file -> getFileFolderAttributes(file))
+                        .collect(Collectors.toList());
+            attributesJson = new GsonBuilder().setPrettyPrinting().create().toJson(attributes, List.class);
+        } else if (sourceFile.isFile())
+            throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a file");
+        else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " path is not exist");
         return attributesJson;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get created date time from file/directory path [1] with response data store in variable [text result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String getFileFolderCreationDate(String sourcePath) {
+            + "Get created date time from file/directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file or directory path location;")
+    public String getFileFolderCreationDate(String sourcePath) throws FileNotFoundException {
         String date = null;
-        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-        if (checkFileFolderExists(processedSourcePath))
-            date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).creationTime());
+        if (checkFileFolderExists(sourcePath))
+            date = toDateStringFromFileTime(getFileFolderBasicAttributes(sourcePath).creationTime());
+        else
+            throw new FileNotFoundException("source from " + sourcePath + " path is not exist");
         return date;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get last modified date time from file/directory path [1] with response data store in variable [text result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String getFileFolderLastModifiedDate(String sourcePath) {
+            + "Get last modified date time from file/directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file or directory path location;")
+    public String getFileFolderLastModifiedDate(String sourcePath) throws FileNotFoundException {
         String date = null;
-        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-        if (checkFileFolderExists(processedSourcePath))
-            date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).lastModifiedTime());
+        if (checkFileFolderExists(sourcePath))
+            date = toDateStringFromFileTime(getFileFolderBasicAttributes(sourcePath).lastModifiedTime());
+        else
+            throw new FileNotFoundException("source from " + sourcePath + " path is not exist");
         return date;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get last accessed date time from file/directory path [1] with response data store in variable [text result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static String getFileFolderLastAccessDate(String sourcePath) {
+            + "Get last accessed date time from file/directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file or directory path location;")
+    public String getFileFolderLastAccessDate(String sourcePath) throws FileNotFoundException {
         String date = null;
-        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-        if (checkFileFolderExists(processedSourcePath))
-            date = toDateStringFromFileTime(getFileFolderBasicAttributes(processedSourcePath).lastAccessTime());
+        if (checkFileFolderExists(sourcePath))
+            date = toDateStringFromFileTime(getFileFolderBasicAttributes(sourcePath).lastAccessTime());
+        else
+            throw new FileNotFoundException("source from " + sourcePath + " path is not exist");
         return date;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "checking keyword [1] is exists in file path [2] with response status store in local variable [boolean result]; "
-            + "keyword - Other - is text content; "
-            + "sourcePath - File - is fileName can be relative/absolute path;")
-    public static boolean fileHasKeyword(String keyword, String sourcePath) {
+            + "Checking keyword [1] is exists in file path [2] location; "
+            + "keyword - Other - is search keyword; "
+            + "sourcePath - File - is relative/absolute file path location;")
+    public boolean fileHasKeyword(String keyword, String sourcePath) throws FileNotFoundException {
         boolean isExist = false;
-        try {
-            keyword = keyword.trim();
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isFile())
-                isExist = readFileData(sourceFile).trim().contains(keyword);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        keyword = keyword.trim();
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isFile())
+            isExist = readFileData(sourceFile).trim().contains(keyword);
+        else if (sourceFile.isDirectory())
+            throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a directory");
+        else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " path is not exist");
         return isExist;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "get file data at row index [1] from source file [2] with response data row store in local variable [text result]; "
+            + "Get line at row index [1] from file path [2] location; "
             + "index - Other - is row index (number); "
-            + "sourcePath - File - is fileName can be relative/absolute path;")
-    public static String fileDataAtRowIndex(int rowIndex, String sourcePath) {
+            + "sourcePath - File - is relative/absolute file path location;")
+    public String fileDataAtRowIndex(int rowIndex, String sourcePath) throws IOException {
         String rowData = null;
-        try {
-            if (rowIndex >= 0) {
-                String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-                File sourceFile = new File(processedSourcePath);
-                if (sourceFile.exists() && sourceFile.isFile()) {
-                    List<String> lines = FileUtils.readLines(sourceFile, LIB_DEFAULT_CHARSET);
-                    if (rowIndex < lines.size())
-                        rowData = lines.get(rowIndex);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        rowIndex = rowIndex - 1;
+        if (rowIndex >= 0) {
+            File sourceFile = new File(sourcePath);
+            if (sourceFile.exists() && sourceFile.isFile()) {
+                List<String> lines = FileUtils.readLines(sourceFile, LIB_DEFAULT_CHARSET);
+                if (rowIndex < lines.size())
+                    rowData = lines.get(rowIndex);
+            } else if (sourceFile.isDirectory())
+                throw new IllegalArgumentException("source from " + sourceFile.getAbsolutePath() + " path is a directory");
+            else
+                throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " path is not exist");
+        } else
+            throw new IllegalArgumentException("row index: " + rowIndex + " is smaller than zero");
         return rowData;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "replace keyword [1] with new keyword [2] from file path [3] with response data store in local variable [text result]; "
+            + "Replace keyword [1] with new keyword [2] from file path [3] location; "
             + "keyword - Other - search keyword; "
             + "replaceKeyword - Other - replace keyword; "
-            + "sourcePath - File - is fileName can be relative/absolute path;")
-    public static boolean fileReplaceAll(String keyword, String replaceKeyword, String sourcePath) {
+            + "sourcePath - File - is relative/absolute file path;")
+    public boolean fileReplaceAll(String keyword, String replaceKeyword, String sourcePath) throws FileNotFoundException {
         boolean isReplaced = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists() && sourceFile.isFile())
-                isReplaced = overWriteFileData(readFileData(sourceFile).replace(keyword, replaceKeyword), sourceFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists() && sourceFile.isFile())
+            isReplaced = overWriteFileData(readFileData(sourceFile).replace(keyword, replaceKeyword), sourceFile);
+        else if (sourceFile.isDirectory())
+            throw new IllegalArgumentException("source path " + sourceFile.getAbsolutePath() + " path is a directory");
+        else
+            throw new FileNotFoundException("source path " + sourceFile.getAbsolutePath() + " is not exist");
         return isReplaced;
     }
 
     @DescriptorKey("Prefix:ART; "
-            + "delete file/directory from source location path [1] with response data store in variable [boolean result]; "
-            + "sourcePath - File - is fileName/folderName can be relative/absolute path;")
-    public static boolean deleteFileFolder(String sourcePath) {
+            + "Delete file/directory from file/directory path [1] location; "
+            + "sourcePath - File - is relative/absolute file path location;")
+    public boolean deleteFileFolder(String sourcePath) throws IOException {
         boolean isDeleted = false;
-        try {
-            String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
-            File sourceFile = new File(processedSourcePath);
-            if (sourceFile.exists()) {
-                System.out.println("deleted: " + sourceFile.getPath());
-                FileUtils.forceDelete(sourceFile);
-                isDeleted = true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.exists()) {
+            System.out.println("deleted: " + sourceFile.getPath());
+            FileUtils.forceDelete(sourceFile);
+            isDeleted = true;
+        } else
+            throw new FileNotFoundException("source from " + sourceFile.getAbsolutePath() + " path is not exist");
         return isDeleted;
     }
 
-    private static boolean isPathAbsolute(String path) {
+    public boolean isPathAbsolute(String path) {
         return Paths.get(path).isAbsolute();
     }
 
-    private static String toAbsolute(String path) {
-        return Paths.get(path).toAbsolutePath().toString();
+    public String toAbsolute(String path) {
+        return Paths.get(LIB_DEFAULT_FOLDER + SEPARATOR + path).toAbsolutePath().toString();
     }
 
-    private static boolean isFile(String nameOrPath, boolean isFileName) {
+    public boolean isFile(String nameOrPath, boolean isFileName) {
         if (!isFileName) {
             File file = new File(nameOrPath);
             nameOrPath = file.getName();
@@ -473,17 +466,17 @@ public class FileFolderLib {
         return nameOrPath.indexOf(".") != -1;
     }
 
-    private static String getFileFolderNameFromPath(String sourcePath) {
+    public String getFileFolderNameFromPath(String sourcePath) {
         String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
         File sourceFile = new File(processedSourcePath);
         return sourceFile.exists() ? sourceFile.getName() : "";
     }
 
-    private static String replaceFileFolderPathName(String path, String replaceName) {
+    public String replaceFileFolderPathName(String path, String replaceName) {
         return path.substring(0, path.lastIndexOf(SEPARATOR) + 1) + replaceName;
     }
 
-    private static boolean createFileFolder(File sourceFile) {
+    public boolean createFileFolder(File sourceFile) {
         boolean isCreated = false;
         try {
             if (isFile(sourceFile.getName(), true)) {
@@ -499,34 +492,34 @@ public class FileFolderLib {
         return isCreated;
     }
 
-    private static String getFileFolderCreationDate(BasicFileAttributes basicFileAttributes) {
+    public String getFileFolderCreationDate(BasicFileAttributes basicFileAttributes) {
         return toDateStringFromFileTime(basicFileAttributes.creationTime());
     }
 
-    private static String getFileFolderLastAccessDate(BasicFileAttributes basicFileAttributes) {
+    public String getFileFolderLastAccessDate(BasicFileAttributes basicFileAttributes) {
         return toDateStringFromFileTime(basicFileAttributes.lastAccessTime());
     }
 
-    private static BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
+    public BasicFileAttributes getFileFolderBasicAttributes(String sourcePath) {
         BasicFileAttributes basicFileAttributes = null;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             if (checkFileFolderExists(processedSourcePath))
-                basicFileAttributes = java.nio.file.Files.getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class).readAttributes();
+                basicFileAttributes = java.nio.file.Files
+                        .getFileAttributeView(Paths.get(processedSourcePath), BasicFileAttributeView.class)
+                        .readAttributes();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return basicFileAttributes;
     }
 
-    private static String toDateStringFromFileTime(FileTime fileTime) {
-        return fileTime
-                .toInstant()
-                .atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID))
-                .toLocalDateTime().format(DateTimeFormatter.ofPattern(LIB_DEFAULT_DATE_TIME_PATTERN));
+    public String toDateStringFromFileTime(FileTime fileTime) {
+        return fileTime.toInstant().atZone(ZoneId.of(LIB_DEFAULT_ZONE_ID)).toLocalDateTime()
+                .format(DateTimeFormatter.ofPattern(LIB_DEFAULT_DATE_TIME_PATTERN));
     }
 
-    private static String humanReadableByteCountBin(long bytes) {
+    public String humanReadableByteCountBin(long bytes) {
         long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
         if (absB < 1024) {
             return bytes + " B";
@@ -541,7 +534,7 @@ public class FileFolderLib {
         return String.format("%.1f %ciB", value / 1024.0, ci.current());
     }
 
-    private static FileFolderAttributesDto getFileFolderAttributes(File sourceFile) {
+    public FileFolderAttributesDto getFileFolderAttributes(File sourceFile) {
         FileFolderAttributesDto fileFolderAttributesDto = new FileFolderAttributesDto();
         try {
             if (sourceFile.exists()) {
@@ -557,6 +550,7 @@ public class FileFolderLib {
                 fileFolderAttributesDto.setDirectory(basicFileAttributes.isDirectory());
                 fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
                 fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
+                fileFolderAttributesDto.setHidden(sourceFile.isHidden());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -564,7 +558,16 @@ public class FileFolderLib {
         return fileFolderAttributesDto;
     }
 
-    private static Long getFileFolderSizeByte(String sourcePath) {
+    public boolean checkFileFolderIsHiddenFromPath(String sourcePath) {
+        boolean isHidden = false;
+        String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
+        File sourceFile = new File(processedSourcePath);
+        if (sourceFile.exists())
+            isHidden = sourceFile.isHidden();
+        return isHidden;
+    }
+
+    public Long getFileFolderSizeByte(String sourcePath) {
         Long size = 0l;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
@@ -581,7 +584,7 @@ public class FileFolderLib {
         return size;
     }
 
-    private static String readFileData(File sourceFile) {
+    public String readFileData(File sourceFile) {
         String data = null;
         try {
             if (sourceFile.exists() && sourceFile.isFile())
@@ -592,21 +595,20 @@ public class FileFolderLib {
         return data;
     }
 
-    private static Set<File> listFileFolder(String sourcePath) {
+    public Set<File> listFileFolder(String sourcePath) {
         Set<File> files = null;
         try {
             String processedSourcePath = isPathAbsolute(sourcePath) ? sourcePath : toAbsolute(sourcePath);
             File sourceFile = new File(processedSourcePath);
             if (sourceFile.exists() && sourceFile.isDirectory())
-                files = Stream.of(sourceFile.listFiles())
-                        .collect(Collectors.toSet());
+                files = Stream.of(sourceFile.listFiles()).collect(Collectors.toSet());
         } catch (Exception e) {
             e.printStackTrace();
         }
         return files;
     }
 
-    private static boolean appendFileContent(String newData, File sourceFile) {
+    public boolean appendFileContent(String newData, File sourceFile) {
         boolean isAppend = false;
         try {
             newData = newData.trim();
@@ -621,7 +623,7 @@ public class FileFolderLib {
         return isAppend;
     }
 
-    public static boolean overWriteFileData(String newData, String sourcePath) {
+    public boolean overWriteFileData(String newData, String sourcePath) {
         boolean isOverWrite = false;
         try {
             newData = newData.trim();
@@ -637,7 +639,7 @@ public class FileFolderLib {
         return isOverWrite;
     }
 
-    public static boolean overWriteFileData(String newData, File sourceFile) {
+    public boolean overWriteFileData(String newData, File sourceFile) {
         boolean isOverWrite = false;
         try {
             newData = newData.trim();
@@ -651,7 +653,7 @@ public class FileFolderLib {
         return isOverWrite;
     }
 
-    private static Long getFileFolderSizeByte(File sourceFile) {
+    public Long getFileFolderSizeByte(File sourceFile) {
         Long size = 0l;
         try {
             if (sourceFile.exists()) {
@@ -666,7 +668,7 @@ public class FileFolderLib {
         return size;
     }
 
-    private static String getFileFolderLastModifiedDate(BasicFileAttributes basicFileAttributes) {
+    public String getFileFolderLastModifiedDate(BasicFileAttributes basicFileAttributes) {
         return toDateStringFromFileTime(basicFileAttributes.lastModifiedTime());
     }
 }
