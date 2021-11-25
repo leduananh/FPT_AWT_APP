@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class FileFolderAttributesDto implements Serializable {
     private String name;
+    private String path;
     private String sizeText;
     private long sizeByte;
     private String creationDateTime;
@@ -24,6 +25,14 @@ public class FileFolderAttributesDto implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getSizeText() {

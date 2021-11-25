@@ -32,21 +32,21 @@ public interface FileFolderCrudService {
 
     public void fileFolderSize() throws FileNotFoundException;
 
-    public void fileFolderAttributes() throws FileNotFoundException;
+    public void fileFolderAttributes() throws IOException;
 
-    public void fileFolderCreationDate() throws FileNotFoundException;
+    public void fileFolderCreationDate() throws FileNotFoundException, IOException;
 
-    public void fileFolderLastModifiedDate() throws FileNotFoundException;
+    public void fileFolderLastModifiedDate() throws FileNotFoundException, IOException;
 
-    public void fileFolderLastAccessDate() throws FileNotFoundException;
+    public void fileFolderLastAccessDate() throws IOException;
 
-    public void overWriteFileData();
+    public void overWriteFileData() throws IOException;
 
-    public void fileHasKeyword() throws FileNotFoundException;
+    public void fileHasKeyword() throws IOException;
 
     public void fileDataAtRowIndex() throws IOException;
 
-    public void fileReplaceAll() throws FileNotFoundException;
+    public void fileReplaceAll() throws FileNotFoundException, IOException;
 
     public void deleteFileFolder() throws IOException;
 }
