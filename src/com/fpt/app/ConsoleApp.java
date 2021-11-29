@@ -1,23 +1,26 @@
 package com.fpt.app;
 
+import com.fpt.enumType.AppConfig;
 import com.fpt.enumType.UsedClazzEnum;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class ConsoleApp {
+public class ConsoleApp implements RunCmd {
     private Menu appMenu;
     private String APP_TITLE;
     private final String REQUEST_INPUT_TITLE = "input function index to invoke: ";
 
     public ConsoleApp(String title) {
         this.APP_TITLE = title;
-        this.appMenu = new Menu(APP_TITLE);
+        this.appMenu = new Menu("\n" + APP_TITLE);
     }
 
     public void start() {
+        runCmd("title " + APP_TITLE);
         while (true) {
             this.appMenu.show();
             String functionName = readUserInput();
@@ -38,7 +41,7 @@ public class ConsoleApp {
                 int arrayIndex = menuIndex - 1;
                 functionName = this.appMenu.getFunctionNameByIndex(arrayIndex);
                 break;
-            } catch (IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             } catch (InputMismatchException e) {
                 System.out.println("only number...");
@@ -112,4 +115,14 @@ public class ConsoleApp {
         }
     }
 
+    @Override
+    public void runCmd(String command) {
+        try {
+            new ProcessBuilder("cmd", "/C", command).inheritIO().start().waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

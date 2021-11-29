@@ -1,5 +1,7 @@
 package com.fpt.service;
 
+import com.fpt.app.RunCmd;
+import com.fpt.enumType.AppConfig;
 import com.fpt.folderHandleLib.FileFolderLib;
 
 import java.io.FileNotFoundException;
@@ -7,7 +9,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-public class FileFolderCrudServiceImpl implements FileFolderCrudService {
+public class FileFolderCrudServiceImpl implements FileFolderCrudService, RunCmd {
     private final Scanner scanner = new Scanner(System.in);
     private final FileFolderLib fileFolderLib = new FileFolderLib();
 
@@ -183,7 +185,7 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     public void fileDataAtRowIndex() throws IOException {
         int rowIndex = readInt("input your row index: ");
         String sourcePath = readText("input your sourcePath file \n is absolute path or relative path include parent directory and file name starting from project root to get row data: ");
-        String rowData = fileFolderLib.fileDataAtRowIndex(rowIndex, sourcePath);
+        String rowData = fileFolderLib.getLineAtRowIndex(rowIndex, sourcePath);
         System.out.println("row data: " + rowData);
         pressToContinue("press ENTER to back to main menu...");
     }
@@ -204,6 +206,45 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
         boolean isRenamed = fileFolderLib.deleteFileOrFolder(sourcePath);
         System.out.println("respond status: " + isRenamed);
         pressToContinue("press ENTER to back to main menu...");
+    }
+
+    @Override
+    public void countToThenFocus() {
+        int range = readInt("input your range to count: ");
+        int count = 0;
+        while (count < range) {
+            count++;
+            System.out.println("count :" + count);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        String batchContent = "call :focus %~1\n" +
+                "exit /b\n" +
+                "\n" +
+                ":focus\n" +
+                "setlocal EnableDelayedExpansion \n" +
+                "\n" +
+                "    set pr=%~1\n" +
+                "    set pr=!pr:\"=!\n" +
+                "\n" +
+                "    echo CreateObject(\"wscript.shell\").appactivate \"!pr!\" > \"%tmp%\\focus.vbs\"\n" +
+                "    call \"%tmp%\\focus.vbs\"\n" +
+                "    del \"%tmp%\\focus.vbs\"\n" +
+                "        exit\n" +
+                "\n" +
+                "goto :eof \n" +
+                "endlocal ";
+
+        try {
+            fileFolderLib.overwriteFileContent(batchContent, AppConfig.APP_FOCUS_BAT_NAME.getConfigValue());
+            runCmd("start " + AppConfig.APP_FOCUS_BAT_NAME.getConfigValue() + " \"" + AppConfig.APP_TITLE.getConfigValue() + "\"");
+            fileFolderLib.deleteFileOrFolder("D:\\x\\out\\artifacts\\x_jar\\"+AppConfig.APP_FOCUS_BAT_NAME.getConfigValue());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void pressToContinue(String title) {
@@ -253,5 +294,17 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
         if (strNum == null)
             return false;
         return pattern.matcher(strNum).matches();
+    }
+
+    @Override
+    public void runCmd(String command) {
+        try {
+            Process process = new ProcessBuilder("cmd", "/C", command).inheritIO().start();
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

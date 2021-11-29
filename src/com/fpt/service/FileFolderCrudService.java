@@ -49,4 +49,6 @@ public interface FileFolderCrudService {
     public void fileReplaceAll() throws FileNotFoundException, IOException;
 
     public void deleteFileFolder() throws IOException;
+
+    public void countToThenFocus();
 }
