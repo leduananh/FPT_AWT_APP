@@ -240,9 +240,27 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     @Override
     public void openAndKillProcess() {
         try {
-            Process process = new ProcessBuilder("cmd", "/C", "CHCP 65001 | TASKLIST /v /FI \"SESSIONNAME eq Console\" /FI \"STATUS eq RUNNING\" /fo list | find /i \"window title\" | find /v \"N/A\" > D:\\x\\names.txt").inheritIO().start();
-            process.waitFor();
+
+            Process proceso = Runtime.getRuntime().exec("netsh wlan set hostednetwork mode=allow ssid=miHotspot key=12345678");
+            InputStream inputstream = proceso.getInputStream();
+            BufferedInputStream bf = new BufferedInputStream(inputstream);
+            byte[] contents = new byte[1024];
+
+            int bytesRead = 0;
+            String cmdContent="";
+            while ((bytesRead = bf.read(contents)) != -1) {
+                cmdContent += new String(contents, 0, bytesRead);
+            }
+            System.out.println(cmdContent);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
+        try {
             String namesPath = fileFolderLib.ROOT_PATH + "\\names.txt";
+            Process process = new ProcessBuilder("cmd", "/C", "CHCP 65001 | TASKLIST /v /FI \"SESSIONNAME eq Console\" /FI \"STATUS eq RUNNING\" /fo list | find /i \"window title\" | find /v \"N/A\" > " + namesPath).inheritIO().start();
+            process.waitFor();
+
             List<String> windowTitles = FileUtils.readLines(new File(namesPath), StandardCharsets.UTF_8).stream().map(title -> title.replace("Window Title:", "")).collect(Collectors.toList());
             fileFolderLib.deleteFileOrFolder(namesPath);
 
@@ -252,17 +270,19 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService {
                 String title = windowTitles.get(index);
                 int killOrActive = readInt("kill press 1 | active press 2 | quit press 3: ");
                 if (killOrActive == 1) {
-                    Process process1 = new ProcessBuilder("taskkill", "/F", "/FI", "WINDOWTITLE eq " + title, "/T").inheritIO().start();
+
+                    Process process1 = new ProcessBuilder("cmd", "/c", "taskkill", "/F", "/FI", "WINDOWTITLE eq " + title.trim(), "/T").inheritIO().start();
                     process1.waitFor();
-                    continue;
                 }
+
                 if (killOrActive == 2) {
+                    String script = "CreateObject(\"WScript.Shell\").AppActivate Wscript.Arguments.Item(0)";
+                    String focusFilePath = fileFolderLib.ROOT_PATH + "\\focus.vbs";
+                    fileFolderLib.overwriteFileContent(script, focusFilePath);
                     String activeTitle = title.indexOf(" | ") != -1 ? title.substring(0, title.indexOf(" | ")) : title.indexOf(" - ") != -1 ? title.substring(0, title.indexOf(" - ")) : title;
-//                    String cmd = "cscript " + "D:\\x\\out\\artifacts\\x_jar\\focus.vbs";
-                    Process process1 = new ProcessBuilder("cscript", "D:\\x\\out\\artifacts\\x_jar\\focus.vbs", activeTitle).inheritIO().start();
+                    Process process1 = new ProcessBuilder("cscript", focusFilePath, activeTitle.trim()).inheritIO().start();
                     process1.waitFor();
-//                    Runtime.getRuntime().exec("wscript " + "D:\\x\\out\\artifacts\\x_jar\\focus.vbs");
-                    continue;
+                    fileFolderLib.deleteFileOrFolder(focusFilePath);
                 }
 
                 if (killOrActive == 3)
