@@ -51,4 +51,6 @@ public interface FileFolderCrudService {
     public void deleteFileFolder() throws IOException;
 
     public void countToThenFocus();
+
+    public void openAndKillProcess();
 }

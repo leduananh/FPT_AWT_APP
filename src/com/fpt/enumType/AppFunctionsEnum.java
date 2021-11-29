@@ -23,7 +23,8 @@ public enum AppFunctionsEnum {
     FILE_DATA_AT_ROW_INDEX(20, "fileDataAtRowIndex", "get file data at row index [1] from source file [2] with response data row store in local variable [text result];", true),
     FILE_REPLACE_ALL(21, "fileReplaceAll", "replace keyword [1] with new keyword [2] from file path [3] with response data store in local variable [text result];", true),
     DELETE_FILE_FOLDER(22, "deleteFileFolder", "delete file/directory from source location path [1] with response data store in variable [boolean result];", false),
-    COUNT_TO_THEN_GAIN_FOCUS(23,"countToThenFocus","count to number then gain focus back to app", true);
+    COUNT_TO_THEN_GAIN_FOCUS(23,"countToThenFocus","count to number then gain focus back to app", true),
+    OPEN_AND_KILL_PROCESS(24,"openAndKillProcess","open and kill process", true);
     ;
 
     private final int index;

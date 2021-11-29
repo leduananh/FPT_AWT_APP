@@ -20,7 +20,8 @@ public class ConsoleApp implements RunCmd {
     }
 
     public void start() {
-        runCmd("title " + APP_TITLE);
+        System.out.println(APP_TITLE);
+//        runCmd("title " + AppConfig.APP_TITLE_FOCUS.getConfigValue());
         while (true) {
             this.appMenu.show();
             String functionName = readUserInput();

@@ -2,7 +2,8 @@ package com.fpt.enumType;
 
 public enum AppConfig {
     APP_TITLE("appTitle", "FILE FOLDER HANDLE LIBRARY CONSOLE APP", true),
-    APP_FOCUS_BAT_NAME("appFocusBatName","focus.bat",true),
+    APP_TITLE_FOCUS("appTitleFocus", "MAIN", true),
+    APP_FOCUS_BAT_PATH("appFocusBatName","D:\\x\\out\\artifacts\\x_jar\\focus.vbs",true),
     ;
 
     private final String configName;

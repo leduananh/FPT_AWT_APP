@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import javax.management.DescriptorKey;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -40,6 +41,7 @@ public class FileFolderLib {
     public final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
     public final String LIB_DEFAULT_FOLDER = "data";
     public final String LINE_ENDING = "\n";
+    public  final String ROOT_PATH = getUsersProjectRootDirectory().toAbsolutePath().toString();
 
     @DescriptorKey("Prefix:ART; "
             + "Move file/folder [1] to destination folder path [2], will overwrite existing folder and create if not exist; "
@@ -255,7 +257,7 @@ public class FileFolderLib {
             + "Overwrite content [1] from path to file [2], create file if not exist; "
             + "content - Other - is new content; "
             + "filePath - File - is fileName/absolute path to file with file format;")
-    public boolean overwriteFileContent(String content, String filePath) throws IOException, IllegalArgumentException {
+    synchronized public boolean overwriteFileContent(String content, String filePath) throws IOException, IllegalArgumentException {
         if (content.isEmpty()) {
             final String message = "content is empty";
             throw new IllegalArgumentException(message);
@@ -267,17 +269,32 @@ public class FileFolderLib {
             final String message = sourceFile + " is a folder";
             throw new IllegalArgumentException(message);
         }
+        try {
+            if (sourceFile.exists()) {
+                FileUtils.writeStringToFile(sourceFile, content, LIB_DEFAULT_CHARSET);
+                return true;
+            } else if (createFileWithContent(sourceFile,content)) {
 
-        if (sourceFile.exists()) {
-            FileUtils.writeStringToFile(sourceFile, content, LIB_DEFAULT_CHARSET);
-            return true;
-        } else if (sourceFile.createNewFile()) {
-            FileUtils.writeStringToFile(sourceFile, content, LIB_DEFAULT_CHARSET);
-            return true;
-        } else {
-            final String message = "unable to write content into " + sourceFile;
-            throw new IOException(message);
+                FileUtils.writeStringToFile(sourceFile, content, LIB_DEFAULT_CHARSET);
+                return true;
+            } else {
+                final String message = "unable to write content into " + sourceFile;
+                throw new RuntimeException(message);
+            }
+        } catch (IOException e) {
+            throw new IOException(e.getMessage());
         }
+    }
+
+    private boolean createFileWithContent(File file, String content) {
+        try {
+            FileUtils.forceMkdirParent(file);
+            FileUtils.writeStringToFile(file,content,LIB_DEFAULT_CHARSET);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @DescriptorKey("Prefix:ART; "

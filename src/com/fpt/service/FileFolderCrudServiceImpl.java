@@ -3,13 +3,18 @@ package com.fpt.service;
 import com.fpt.app.RunCmd;
 import com.fpt.enumType.AppConfig;
 import com.fpt.folderHandleLib.FileFolderLib;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class FileFolderCrudServiceImpl implements FileFolderCrudService, RunCmd {
+public class FileFolderCrudServiceImpl implements FileFolderCrudService {
     private final Scanner scanner = new Scanner(System.in);
     private final FileFolderLib fileFolderLib = new FileFolderLib();
 
@@ -221,30 +226,68 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService, RunCmd 
                 e.printStackTrace();
             }
         }
-        String batchContent = "call :focus %~1\n" +
-                "exit /b\n" +
-                "\n" +
-                ":focus\n" +
-                "setlocal EnableDelayedExpansion \n" +
-                "\n" +
-                "    set pr=%~1\n" +
-                "    set pr=!pr:\"=!\n" +
-                "\n" +
-                "    echo CreateObject(\"wscript.shell\").appactivate \"!pr!\" > \"%tmp%\\focus.vbs\"\n" +
-                "    call \"%tmp%\\focus.vbs\"\n" +
-                "    del \"%tmp%\\focus.vbs\"\n" +
-                "        exit\n" +
-                "\n" +
-                "goto :eof \n" +
-                "endlocal ";
-
+        String batchContent = "CreateObject(\"wscript.shell\").appactivate \"MAIN\"";
         try {
-            fileFolderLib.overwriteFileContent(batchContent, AppConfig.APP_FOCUS_BAT_NAME.getConfigValue());
-            runCmd("start " + AppConfig.APP_FOCUS_BAT_NAME.getConfigValue() + " \"" + AppConfig.APP_TITLE.getConfigValue() + "\"");
-            fileFolderLib.deleteFileOrFolder("D:\\x\\out\\artifacts\\x_jar\\"+AppConfig.APP_FOCUS_BAT_NAME.getConfigValue());
-        } catch (IOException e) {
+            fileFolderLib.overwriteFileContent(batchContent, "D:\\x\\focus.vbs");
+            Runtime.getRuntime().exec("wscript " + "D:\\x\\focus.vbs");
+            Thread.sleep(1000);
+            fileFolderLib.deleteFileOrFolder("D:\\x\\focus.vbs");
+        } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void openAndKillProcess() {
+        try {
+            Process process = new ProcessBuilder("cmd", "/C", "CHCP 65001 | TASKLIST /v /FI \"SESSIONNAME eq Console\" /FI \"STATUS eq RUNNING\" /fo list | find /i \"window title\" | find /v \"N/A\" > D:\\x\\names.txt").inheritIO().start();
+            process.waitFor();
+            String namesPath = fileFolderLib.ROOT_PATH + "\\names.txt";
+            List<String> windowTitles = FileUtils.readLines(new File(namesPath), StandardCharsets.UTF_8).stream().map(title -> title.replace("Window Title:", "")).collect(Collectors.toList());
+            fileFolderLib.deleteFileOrFolder(namesPath);
+
+            while (true) {
+                IntStream.range(0, windowTitles.size()).forEach(index -> System.out.println(index + 1 + ". " + windowTitles.get(index)));
+                int index = readInt("pick index of app to active: ") - 1;
+                String title = windowTitles.get(index);
+                int killOrActive = readInt("kill press 1 | active press 2 | quit press 3: ");
+                if (killOrActive == 1) {
+                    Process process1 = new ProcessBuilder("taskkill", "/F", "/FI", "WINDOWTITLE eq " + title, "/T").inheritIO().start();
+                    process1.waitFor();
+                    continue;
+                }
+                if (killOrActive == 2) {
+                    String activeTitle = title.indexOf(" | ") != -1 ? title.substring(0, title.indexOf(" | ")) : title.indexOf(" - ") != -1 ? title.substring(0, title.indexOf(" - ")) : title;
+//                    String cmd = "cscript " + "D:\\x\\out\\artifacts\\x_jar\\focus.vbs";
+                    Process process1 = new ProcessBuilder("cscript", "D:\\x\\out\\artifacts\\x_jar\\focus.vbs", activeTitle).inheritIO().start();
+                    process1.waitFor();
+//                    Runtime.getRuntime().exec("wscript " + "D:\\x\\out\\artifacts\\x_jar\\focus.vbs");
+                    continue;
+                }
+
+                if (killOrActive == 3)
+                    break;
+
+                System.out.println("dont have this function");
+                continue;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+
+//        try {
+//            Process p = Runtime.getRuntime().exec("tasklist.exe /v /fo list");
+//            p.waitFor();
+//
+//            String result = IOUtils.toString(p.getInputStream(), StandardCharsets.UTF_8);
+//            System.out.println(result);
+//
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+
     }
 
     private void pressToContinue(String title) {
@@ -296,15 +339,25 @@ public class FileFolderCrudServiceImpl implements FileFolderCrudService, RunCmd 
         return pattern.matcher(strNum).matches();
     }
 
-    @Override
-    public void runCmd(String command) {
+    private Process runVbs() {
+        Process process = null;
         try {
-            Process process = new ProcessBuilder("cmd", "/C", command).inheritIO().start();
-            process.waitFor();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            process = Runtime.getRuntime().exec("wscript " + AppConfig.APP_FOCUS_BAT_PATH.getConfigValue());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return process;
+
+    }
+
+    private Process runCmd(String command) {
+        Process process = null;
+        try {
+            process = new ProcessBuilder("cmd", "/C", command).inheritIO().start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return process;
     }
 }
