@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public interface FileFolderCrudService {
-    public void createFolder() throws IOException;
+    public void createFolder() throws IOException, Exception;
 
     public void moveFileFolder() throws IOException;
 
