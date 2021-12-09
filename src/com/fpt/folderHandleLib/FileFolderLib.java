@@ -2,8 +2,6 @@ package com.fpt.folderHandleLib;
 
 import com.fpt.folderHandleLib.dto.FileFolderAttributesDto;
 import com.fpt.folderHandleLib.dto.FileFolderNameDto;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 
 import org.apache.commons.io.FileUtils;
 
@@ -169,7 +167,7 @@ public class FileFolderLib {
             boolean isFolder = file.isDirectory();
             return new FileFolderNameDto(name, path, isFile, isFolder);
         }).collect(Collectors.toSet());
-        return new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderNames, Set.class);
+        return "new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderNames, Set.class)";
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -196,7 +194,7 @@ public class FileFolderLib {
             return new FileFolderNameDto(name, path, isFile, isFolder);
         }).collect(Collectors.toSet());
 
-        return new GsonBuilder().setPrettyPrinting().create().toJson(fileNames, Set.class);
+        return "new GsonBuilder().setPrettyPrinting().create().toJson(fileNames, Set.class)";
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -322,7 +320,7 @@ public class FileFolderLib {
                     return new FileFolderNameDto(name, path, isFile, isFolder);
                 }).collect(Collectors.toSet());
 
-        return new GsonBuilder().setPrettyPrinting().create().toJson(folderNames, Set.class);
+        return "new GsonBuilder().setPrettyPrinting().create().toJson(folderNames, Set.class)";
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -376,7 +374,7 @@ public class FileFolderLib {
         fileFolderAttributesDto.setOther(basicFileAttributes.isOther());
         fileFolderAttributesDto.setSymbolicLink(basicFileAttributes.isSymbolicLink());
         fileFolderAttributesDto.setHidden(sourceFile.isHidden());
-        return new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderAttributesDto, FileFolderAttributesDto.class);
+        return "new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderAttributesDto, FileFolderAttributesDto.class)";
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -401,7 +399,7 @@ public class FileFolderLib {
                 .filter(file -> file != null)
                 .collect(Collectors.toList());
 
-        return new GsonBuilder().setPrettyPrinting().create().toJson(attributes, List.class);
+        return "new GsonBuilder().setPrettyPrinting().create().toJson(attributes, List.class)";
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -416,12 +414,12 @@ public class FileFolderLib {
             throw new FileNotFoundException(message);
         }
 
-        JsonObject date = new JsonObject();
-        date.addProperty("name", sourceFile.getName());
-        date.addProperty("path", sourceFile.getAbsolutePath());
-        date.addProperty("createdDate", toDateStringFromFileTime(getFileFolderBasicAttributes(sourceFile).creationTime()));
+//        JsonObject date = new JsonObject();
+//        date.addProperty("name", sourceFile.getName());
+//        date.addProperty("path", sourceFile.getAbsolutePath());
+//        date.addProperty("createdDate", toDateStringFromFileTime(getFileFolderBasicAttributes(sourceFile).creationTime()));
 
-        return new GsonBuilder().setPrettyPrinting().create().toJson(date, JsonObject.class);
+        return null
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -451,12 +449,7 @@ public class FileFolderLib {
             throw new FileNotFoundException(message);
         }
 
-        JsonObject date = new JsonObject();
-        date.addProperty("name", sourceFile.getName());
-        date.addProperty("path", sourceFile.getAbsolutePath());
-        date.addProperty("lastModified", toDateStringFromFileTime(getFileFolderBasicAttributes(sourceFile).lastModifiedTime()));
-
-        return new GsonBuilder().setPrettyPrinting().create().toJson(date, JsonObject.class);
+        return null
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -486,12 +479,7 @@ public class FileFolderLib {
             throw new FileNotFoundException(message);
         }
 
-        JsonObject date = new JsonObject();
-        date.addProperty("name", sourceFile.getName());
-        date.addProperty("path", sourceFile.getAbsolutePath());
-        date.addProperty("lastAccess", toDateStringFromFileTime(getFileFolderBasicAttributes(sourceFile).lastAccessTime()));
-
-        return new GsonBuilder().setPrettyPrinting().create().toJson(date, JsonObject.class);
+        return null
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -624,15 +612,7 @@ public class FileFolderLib {
         }
 
         List<String> lines = listFileLine(sourceFile);
-        List<JsonObject> rs = new ArrayList<>();
-        IntStream.range(0, lines.size()).filter(index -> lines.get(index).contains(content)).forEach(index -> {
-            JsonObject lineObj = new JsonObject();
-            lineObj.addProperty("line", lines.get(index));
-            lineObj.addProperty("lineIndex", index);
-            rs.add(lineObj);
-        });
-
-        return new GsonBuilder().setPrettyPrinting().create().toJson(rs, List.class);
+     return null;
     }
 
     @DescriptorKey("Prefix:ART; "

@@ -1,7 +1,9 @@
 package com.fpt.folderHandleLib;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedWriter;
@@ -16,6 +18,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.text.CharacterIterator;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.text.StringCharacterIterator;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -34,6 +37,7 @@ public class FileSimplify {
     private static final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
     private static final String LIB_DEFAULT_FOLDER = "data";
     private static final String LINE_ENDING = "\n";
+    private static final String DEFAULT_DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss";
 
     public static boolean isExists(Path path) {
         return Files.exists(path, LinkOption.NOFOLLOW_LINKS);
@@ -190,9 +194,9 @@ public class FileSimplify {
             final String message = filePath + " is not exist, or not an file";
             throw new FileNotFoundException(message);
         } else {
-            try{
+            try {
                 return FileUtils.readFileToString(Paths.get(filePath).toFile(), LIB_DEFAULT_CHARSET);
-            } catch (OutOfMemoryError error){
+            } catch (OutOfMemoryError error) {
                 throw new Exception("Not enough memory to read data");
             }
 
@@ -317,8 +321,19 @@ public class FileSimplify {
                 lineObj.addProperty("lineIndex", numberFormat(index + 1));
                 rs.add(lineObj);
             });
-            return new GsonBuilder().setPrettyPrinting().create().toJson(rs, List.class);
+            return writeValueAsJsonStr(rs, DEFAULT_DATE_TIME_FORMAT);
         }
+    }
+
+    private static ObjectWriter objWriterDateTimeFormat(String format) {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .setDateFormat(new SimpleDateFormat(format))// write date data with datetime format
+                .writerWithDefaultPrettyPrinter();
+    }
+
+    private static String writeValueAsJsonStr(Object value, String dateFormat) throws JsonProcessingException {
+        return objWriterDateTimeFormat(dateFormat).writeValueAsString(value);
     }
 
     public static void replaceAllFileContent(String searchContent, String replaceContent, String filePath) throws IOException {
