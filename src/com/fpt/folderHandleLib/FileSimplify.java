@@ -23,173 +23,179 @@ import java.text.StringCharacterIterator;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.json.simple.JSONObject;
+
 public class FileSimplify {
-    private static final String SEPARATOR = "\\";
     private static final Charset LIB_DEFAULT_CHARSET = StandardCharsets.UTF_8;
     private static final String LIB_DEFAULT_ZONE_ID = "Asia/Ho_Chi_Minh";
     private static final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
-    private static final String LIB_DEFAULT_FOLDER = "data";
     private static final String LINE_ENDING = "\n";
-    private static final String DEFAULT_DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss";
 
-    public static boolean isExists(Path path) {
-        return Files.exists(path, LinkOption.NOFOLLOW_LINKS);
+    public static void createFolder(String path) throws IOException {
+        if (isStrEmptyOrNull(path)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        Files.createDirectories(Paths.get(path));
     }
 
-    public static boolean isExists(String path) {
-        return Files.exists(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
+    public static void moveToFolder(String sourcePath, String destFolderPath) throws IOException {
+        if (isStrEmptyOrNull(sourcePath, destFolderPath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (isNotExists(sourcePath)) {
+            final String message = sourcePath + " is not exist";
+            throw new FileNotFoundException(message);
+        } else {
+            FileUtils.moveToDirectory(toFile(sourcePath), toFile(destFolderPath), true);
+        }
     }
 
-    public static boolean isNotExists(Path path) {
-        return Files.notExists(path, LinkOption.NOFOLLOW_LINKS);
-    }
-
-    public static boolean isNotExists(String path) {
-        return Files.notExists(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
-    }
-
-    public static boolean isDirectory(Path path) {
-        return Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
-    }
-
-    public static boolean isDirectory(String path) {
-        return Files.isDirectory(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
-    }
-
-    public static boolean isFile(String path) {
-        return Files.isRegularFile(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
+    public static void copyToFolder(String sourcePath, String destFolderPath) throws IOException {
+        if (isStrEmptyOrNull(sourcePath, destFolderPath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        FileUtils.copyToDirectory(toFile(sourcePath), toFile(destFolderPath));
     }
 
     public static boolean isHidden(String path) throws IOException {
         return Files.isHidden(Paths.get(path));
     }
 
-    public static boolean isHidden(Path path) throws IOException {
-        return Files.isHidden(path);
-    }
-
-    public static void createFolder(Path path) throws IOException {
-        Files.createDirectories(path);
-    }
-
-    public static void moveFileOrFolder(Path sourcePath, Path destFolderPath) throws IOException {
-        if (isNotExists(sourcePath)) {
-            final String message = sourcePath + " is not exist";
-            throw new FileNotFoundException(message);
-        }
-        createFolder(destFolderPath);
-        Files.move(sourcePath, destFolderPath.resolve(sourcePath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    public static void copyFileOrFolder(Path sourcePath, Path destFolderPath) throws IOException {
-        if (Files.notExists(sourcePath)) {
-            final String message = sourcePath + " is not exist";
-            throw new FileNotFoundException(message);
-        }
-        createFolder(destFolderPath);
-        Files.copy(sourcePath, destFolderPath.resolve(sourcePath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    public static File toFile(String path) {
-        return Paths.get(path).toFile();
-    }
-
     public static String getListFileAndFolderNames(String folderPath) throws IOException {
-        if (!isDirectory(folderPath)) {
+        if (isStrEmptyOrNull(folderPath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (!isFolder(folderPath)) {
             final String message = folderPath + " is not exist or not an folder";
             throw new FileNotFoundException(message);
         } else {
-            Set<JsonObject> fileFolderNames = Stream.of(toFile(folderPath).listFiles()).map(file -> {
-                JsonObject nameObj = new JsonObject();
-                nameObj.addProperty("name", file.getName());
-                nameObj.addProperty("path", file.getAbsolutePath());
-                nameObj.addProperty("isFile", file.isFile());
-                nameObj.addProperty("isFolder", file.isDirectory());
+            Set<JSONObject> fileFolderNames = Stream.of(toFile(folderPath).listFiles()).map(file -> {
+                JSONObject nameObj = new JSONObject();
+                nameObj.put("name", file.getName());
+                nameObj.put("path", file.getAbsolutePath());
+                nameObj.put("isFile", file.isFile());
+                nameObj.put("isFolder", file.isDirectory());
                 return nameObj;
             }).collect(Collectors.toSet());
-            return new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderNames, Set.class);
+            try {
+                return writeValueAsJsonStr(fileFolderNames);
+            } catch (JsonProcessingException e) {
+                throw new IOException("An error occurred while writing json data\n");
+            }
         }
     }
 
-    public static String getListFileNames(String folderPath) throws FileNotFoundException {
-        if (!isDirectory(folderPath)) {
+    public static String getListFileNames(String folderPath) throws IOException {
+        if (isStrEmptyOrNull(folderPath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (!isFolder(folderPath)) {
             final String message = folderPath + " is not exist, or not an folder";
             throw new FileNotFoundException(message);
         } else {
-            Set<JsonObject> fileNames = Stream.of(toFile(folderPath).listFiles()).filter(file -> file.isFile()).map(file -> {
-                JsonObject nameObj = new JsonObject();
-                nameObj.addProperty("name", file.getName());
-                nameObj.addProperty("path", file.getAbsolutePath());
-                nameObj.addProperty("isFile", file.isFile());
-                nameObj.addProperty("isFolder", file.isDirectory());
+            Set<JSONObject> fileNames = Stream.of(toFile(folderPath).listFiles()).filter(file -> file.isFile()).map(file -> {
+                JSONObject nameObj = new JSONObject();
+                nameObj.put("name", file.getName());
+                nameObj.put("path", file.getAbsolutePath());
+                nameObj.put("isFile", file.isFile());
+                nameObj.put("isFolder", file.isDirectory());
                 return nameObj;
             }).collect(Collectors.toSet());
-            return new GsonBuilder().setPrettyPrinting().create().toJson(fileNames, Set.class);
+            try {
+                return writeValueAsJsonStr(fileNames);
+            } catch (JsonProcessingException e) {
+                throw new IOException("An error occurred while writing json data\n");
+            }
         }
     }
 
-    public static void mergeFileContent(String filePath, String destFilePath) throws IOException {
+    public static void mergeFile(String filePath, String destFilePath) throws IOException {
+        if (isStrEmptyOrNull(filePath, destFilePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
             throw new FileNotFoundException(message);
         }
-        if (!isFile(destFilePath)) {
-            final String message = destFilePath + " is not exist, or not an file";
-            throw new FileNotFoundException(message);
-        }
+        appendContent("", destFilePath);// append line separate
         byte[] bytes = Files.readAllBytes(Paths.get(filePath));
-        appendContentIntoFile("", destFilePath);
         Files.write(Paths.get(destFilePath), bytes, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
-    public static void appendContentIntoFile(String content, String filePath) throws IOException {
-        if (!isFile(filePath)) {
-            final String message = filePath + " is not exist, or not an file";
+    public static void appendFile(String content, String filePath) throws IOException {
+        if (content != null && isStrEmptyOrNull(filePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (isFolder(filePath)) {
+            final String message = filePath + " is a folder";
             throw new FileNotFoundException(message);
         }
-        BufferedWriter bw = Files.newBufferedWriter(Paths.get(filePath), LIB_DEFAULT_CHARSET, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        try {
-            bw.newLine();
-            bw.write(content);
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
+        BufferedWriter bw = createUTF8BufferWriter(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        bw.newLine();
+        bw.append(content);
         bw.close();
     }
 
-    public static void overwriteFileContent(String content, String filePath) throws IOException {
-        if (isDirectory(filePath)) {
-            final String message = filePath + " is a directory";
-            throw new FileNotFoundException(message);
-        }
-        Files.write(Paths.get(filePath), content.getBytes(StandardCharsets.UTF_8));
+    private static BufferedWriter createUTF8BufferWriter(String path, OpenOption... options) throws IOException {
+        return Files.newBufferedWriter(Paths.get(path), LIB_DEFAULT_CHARSET, options);
     }
 
-    public static String getListFolderNames(String folderPath) throws FileNotFoundException {
-        if (!isDirectory(folderPath)) {
+    public static void overwriteFile(String content, String filePath) throws IOException {
+        if (content != null && isStrEmptyOrNull(filePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (isFolder(filePath)) {
+            final String message = filePath + " is a folder";
+            throw new FileNotFoundException(message);
+        }
+        Files.write(Paths.get(filePath), content.getBytes(LIB_DEFAULT_CHARSET));
+    }
+
+    public static String getListFolderNames(String folderPath) throws IOException {
+        if (isStrEmptyOrNull(folderPath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (!isFolder(folderPath)) {
             final String message = folderPath + " is not exist, or not an folder";
             throw new FileNotFoundException(message);
         } else {
-            Set<JsonObject> folderNames = Stream.of(toFile(folderPath).listFiles()).filter(file -> file.isDirectory()).map(file -> {
-                JsonObject nameObj = new JsonObject();
-                nameObj.addProperty("name", file.getName());
-                nameObj.addProperty("path", file.getAbsolutePath());
-                nameObj.addProperty("isFile", file.isFile());
-                nameObj.addProperty("isFolder", file.isDirectory());
+            Set<JSONObject> folderNames = Stream.of(toFile(folderPath).listFiles()).filter(file -> file.isDirectory()).map(file -> {
+                JSONObject nameObj = new JSONObject();
+                nameObj.put("name", file.getName());
+                nameObj.put("path", file.getAbsolutePath());
+                nameObj.put("isFile", file.isFile());
+                nameObj.put("isFolder", file.isDirectory());
                 return nameObj;
             }).collect(Collectors.toSet());
-            return new GsonBuilder().setPrettyPrinting().create().toJson(folderNames, Set.class);
+            try {
+                return writeValueAsJsonStr(folderNames);
+            } catch (JsonProcessingException e) {
+                throw new IOException("An error occurred while writing json data\n");
+            }
         }
     }
 
-    public static String readFileData(String filePath) throws Exception {
+    public static String readFileData(String filePath) throws IOException {
+        if (isStrEmptyOrNull(filePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
             throw new FileNotFoundException(message);
@@ -197,13 +203,16 @@ public class FileSimplify {
             try {
                 return FileUtils.readFileToString(Paths.get(filePath).toFile(), LIB_DEFAULT_CHARSET);
             } catch (OutOfMemoryError error) {
-                throw new Exception("Not enough memory to read data");
+                throw new IOException("Data is too large to write as String");
             }
-
         }
     }
 
     public static String getFileOrFolderSizeReadable(String sourcePath) throws FileNotFoundException {
+        if (isStrEmptyOrNull(sourcePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (isNotExists(sourcePath)) {
             final String message = sourcePath + " is not exist";
             throw new FileNotFoundException(message);
@@ -213,47 +222,67 @@ public class FileSimplify {
     }
 
     public static String getFileOrFolderAttributes(String sourcePath) throws IOException {
+        if (isStrEmptyOrNull(sourcePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (isNotExists(sourcePath)) {
             final String message = sourcePath + " is not exist";
             throw new FileNotFoundException(message);
         } else {
             File sourceFile = toFile(sourcePath);
-            JsonObject fileFolderAttributesObj = new JsonObject();
+            JSONObject fileFolderAttributesObj = new JSONObject();
             BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourceFile);
-            fileFolderAttributesObj.addProperty("name", sourceFile.getName());
-            fileFolderAttributesObj.addProperty("path", sourceFile.getAbsolutePath());
+            fileFolderAttributesObj.put("name", sourceFile.getName());
+            fileFolderAttributesObj.put("path", sourceFile.getAbsolutePath());
             long sizeByte = getFileFolderSizeByte(sourceFile);
-            fileFolderAttributesObj.addProperty("sizeByte", sizeByte);
-            fileFolderAttributesObj.addProperty("sizeReadable", humanReadableByteCountBin(sizeByte));
-            fileFolderAttributesObj.addProperty("createDateTime", getFileFolderCreationDate(basicFileAttributes));
-            fileFolderAttributesObj.addProperty("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
-            fileFolderAttributesObj.addProperty("lastAccesDateTime", getFileFolderLastAccessDate(basicFileAttributes));
-            fileFolderAttributesObj.addProperty("isFile", basicFileAttributes.isRegularFile());
-            fileFolderAttributesObj.addProperty("isFolder", basicFileAttributes.isDirectory());
-            fileFolderAttributesObj.addProperty("isOther", basicFileAttributes.isOther());
-            fileFolderAttributesObj.addProperty("isSymbolicLink", basicFileAttributes.isSymbolicLink());
-            fileFolderAttributesObj.addProperty("isHidden", sourceFile.isHidden());
-            return new GsonBuilder().setPrettyPrinting().create().toJson(fileFolderAttributesObj, JsonObject.class);
+            fileFolderAttributesObj.put("sizeByte", sizeByte);
+            fileFolderAttributesObj.put("sizeReadable", humanReadableByteCountBin(sizeByte));
+            fileFolderAttributesObj.put("createDateTime", getFileFolderCreationDate(basicFileAttributes));
+            fileFolderAttributesObj.put("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
+            fileFolderAttributesObj.put("lastAccessDateTime", getFileFolderLastAccessDate(basicFileAttributes));
+            fileFolderAttributesObj.put("isFile", basicFileAttributes.isRegularFile());
+            fileFolderAttributesObj.put("isFolder", basicFileAttributes.isDirectory());
+            fileFolderAttributesObj.put("isOther", basicFileAttributes.isOther());
+            fileFolderAttributesObj.put("isSymbolicLink", basicFileAttributes.isSymbolicLink());
+            fileFolderAttributesObj.put("isHidden", sourceFile.isHidden());
+            try {
+                return writeValueAsJsonStr(fileFolderAttributesObj);
+            } catch (JsonProcessingException e) {
+                throw new IOException("An error occurred while writing json data\n");
+            }
         }
     }
 
-    public static String getListFileAndFolderAttributes(String folderPath) throws FileNotFoundException {
-        if (!isDirectory(folderPath)) {
+    public static String getListFileAndFolderAttributes(String folderPath) throws IOException {
+        if (isStrEmptyOrNull(folderPath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (!isFolder(folderPath)) {
             final String message = folderPath + " is not exist, or not an folder";
             throw new FileNotFoundException(message);
         } else {
-            List<JsonObject> attributes = listFileFolder(folderPath).stream().map(file -> {
+            List<JSONObject> attributes = listFileFolder(folderPath).stream().map(file -> {
                 try {
                     return getFileFolderAttributes(file);
                 } catch (IOException e) {
                     return null;
                 }
             }).filter(file -> file != null).collect(Collectors.toList());
-            return new GsonBuilder().setPrettyPrinting().create().toJson(attributes, List.class);
+            try {
+                return writeValueAsJsonStr(attributes);
+            } catch (JsonProcessingException e) {
+                throw new IOException("An error occurred while writing json data\n");
+            }
         }
     }
 
     public static String getFileOrFolderCreationDate(String sourcePath) throws IOException {
+        if (isStrEmptyOrNull(sourcePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (isNotExists(sourcePath)) {
             final String message = sourcePath + " is not exist";
             throw new FileNotFoundException(message);
@@ -262,6 +291,10 @@ public class FileSimplify {
     }
 
     public static String getFileFolderLastModifiedDate(String sourcePath) throws IOException {
+        if (isStrEmptyOrNull(sourcePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (isNotExists(sourcePath)) {
             final String message = sourcePath + " is not exist";
             throw new FileNotFoundException(message);
@@ -270,6 +303,10 @@ public class FileSimplify {
     }
 
     public static String getFileFolderLastAccessDate(String sourcePath) throws IOException {
+        if (isStrEmptyOrNull(sourcePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (isNotExists(sourcePath)) {
             final String message = sourcePath + " is not exist";
             throw new FileNotFoundException(message);
@@ -277,7 +314,11 @@ public class FileSimplify {
         return toDateStringFromFileTime(getFileFolderBasicAttributes(toFile(sourcePath)).lastAccessTime());
     }
 
-    public static String getLineAtRowIndex(int rowIndex, String filePath) throws IOException, IndexOutOfBoundsException {
+    public static String getLineAtRowIndex(Integer rowIndex, String filePath) throws IOException, IndexOutOfBoundsException {
+        if (rowIndex != null && isStrEmptyOrNull(filePath)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         rowIndex = rowIndex - 1;
         if (rowIndex < 0) {
             final String message = "line index does not exist";
@@ -292,6 +333,10 @@ public class FileSimplify {
     }
 
     public static String getAllLineMatchContent(String content, String filePath) throws IOException {
+        if (content != null && isStrEmptyOrNull(filePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
             throw new FileNotFoundException(message);
@@ -301,27 +346,24 @@ public class FileSimplify {
         }
     }
 
-    private static String numberFormat(int number) {
-        DecimalFormat decimalFormat = new DecimalFormat("#.##");
-        decimalFormat.setGroupingUsed(true);
-        decimalFormat.setGroupingSize(3);
-        return decimalFormat.format(number);
-    }
-
     public static String getAllLineMatchContentJson(String content, String filePath) throws IOException {
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
             throw new FileNotFoundException(message);
         } else {
             List<String> lines = listFileLine(filePath);
-            List<JsonObject> rs = new ArrayList<>();
+            List<JSONObject> rs = new ArrayList<>();
             IntStream.range(0, lines.size()).filter(index -> lines.get(index).contains(content)).forEach(index -> {
-                JsonObject lineObj = new JsonObject();
-                lineObj.addProperty("line", lines.get(index));
-                lineObj.addProperty("lineIndex", numberFormat(index + 1));
+                JSONObject lineObj = new JSONObject();
+                lineObj.put("line", lines.get(index));
+                lineObj.put("lineIndex", numberFormat(index + 1));
                 rs.add(lineObj);
             });
-            return writeValueAsJsonStr(rs, DEFAULT_DATE_TIME_FORMAT);
+            try {
+                return writeValueAsJsonStr(rs, LIB_DEFAULT_DATE_TIME_PATTERN);
+            } catch (OutOfMemoryError error) {
+                throw new IOException("Data is too large to write as String");
+            }
         }
     }
 
@@ -334,6 +376,10 @@ public class FileSimplify {
 
     private static String writeValueAsJsonStr(Object value, String dateFormat) throws JsonProcessingException {
         return objWriterDateTimeFormat(dateFormat).writeValueAsString(value);
+    }
+
+    private static String writeValueAsJsonStr(Object value) throws JsonProcessingException {
+        return objWriterDateTimeFormat(LIB_DEFAULT_DATE_TIME_PATTERN).writeValueAsString(value);
     }
 
     public static void replaceAllFileContent(String searchContent, String replaceContent, String filePath) throws IOException {
@@ -356,14 +402,6 @@ public class FileSimplify {
         } else {
             FileUtils.forceDelete(sourceFile);
         }
-    }
-
-    private static boolean isPathAbsolute(String path) {
-        return Paths.get(path).isAbsolute();
-    }
-
-    private static String toAbsolute(String path) {
-        return getUsersProjectRootDirectory() + SEPARATOR + LIB_DEFAULT_FOLDER + SEPARATOR + path;
     }
 
     private static Path getUsersProjectRootDirectory() {
@@ -408,29 +446,25 @@ public class FileSimplify {
         return String.format("%.1f %ciB", value / 1024.0, ci.current());
     }
 
-    private static JsonObject getFileFolderAttributes(File sourceFile) throws IOException {
+    private static JSONObject getFileFolderAttributes(File sourceFile) throws IOException {
         BasicFileAttributes basicFileAttributes = getFileFolderBasicAttributes(sourceFile);
         if (basicFileAttributes == null)
             return null;
-        JsonObject fileFolderAttributesObj = new JsonObject();
-        fileFolderAttributesObj.addProperty("name", sourceFile.getName());
-        fileFolderAttributesObj.addProperty("path", sourceFile.getAbsolutePath());
+        JSONObject fileFolderAttributesObj = new JSONObject();
+        fileFolderAttributesObj.put("name", sourceFile.getName());
+        fileFolderAttributesObj.put("path", sourceFile.getAbsolutePath());
         long sizeByte = getFileFolderSizeByte(sourceFile);
-        fileFolderAttributesObj.addProperty("sizeByte", sizeByte);
-        fileFolderAttributesObj.addProperty("sizeReadable", humanReadableByteCountBin(sizeByte));
-        fileFolderAttributesObj.addProperty("createDateTime", getFileFolderCreationDate(basicFileAttributes));
-        fileFolderAttributesObj.addProperty("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
-        fileFolderAttributesObj.addProperty("lastAccesDateTime", getFileFolderLastAccessDate(basicFileAttributes));
-        fileFolderAttributesObj.addProperty("isFile", basicFileAttributes.isRegularFile());
-        fileFolderAttributesObj.addProperty("isFolder", basicFileAttributes.isDirectory());
-        fileFolderAttributesObj.addProperty("isOther", basicFileAttributes.isOther());
-        fileFolderAttributesObj.addProperty("isSymbolicLink", basicFileAttributes.isSymbolicLink());
-        fileFolderAttributesObj.addProperty("isHidden", sourceFile.isHidden());
+        fileFolderAttributesObj.put("sizeByte", sizeByte);
+        fileFolderAttributesObj.put("sizeReadable", humanReadableByteCountBin(sizeByte));
+        fileFolderAttributesObj.put("createDateTime", getFileFolderCreationDate(basicFileAttributes));
+        fileFolderAttributesObj.put("lastModifiedDateTime", getFileFolderLastModifiedDate(basicFileAttributes));
+        fileFolderAttributesObj.put("lastAccesDateTime", getFileFolderLastAccessDate(basicFileAttributes));
+        fileFolderAttributesObj.put("isFile", basicFileAttributes.isRegularFile());
+        fileFolderAttributesObj.put("isFolder", basicFileAttributes.isDirectory());
+        fileFolderAttributesObj.put("isOther", basicFileAttributes.isOther());
+        fileFolderAttributesObj.put("isSymbolicLink", basicFileAttributes.isSymbolicLink());
+        fileFolderAttributesObj.put("isHidden", sourceFile.isHidden());
         return fileFolderAttributesObj;
-    }
-
-    private static Set<File> listFileFolder(File file) {
-        return Stream.of(file.listFiles()).collect(Collectors.toSet());
     }
 
     private static Set<File> listFileFolder(String path) {
@@ -447,5 +481,49 @@ public class FileSimplify {
 
     private static List<String> listFileLine(String filePath) throws IOException {
         return Files.lines(Paths.get(filePath)).collect(Collectors.toList());
+    }
+
+    public static boolean isExists(String path) {
+        return Files.exists(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
+    }
+
+    private static boolean isNotExists(String path) {
+        return Files.notExists(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
+    }
+
+    private static boolean isFolder(String path) {
+        return Files.isDirectory(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
+    }
+
+    private static boolean isFile(String path) {
+        return Files.isRegularFile(Paths.get(path), LinkOption.NOFOLLOW_LINKS);
+    }
+
+    private static File toFile(String path) {
+        return Paths.get(path).toFile();
+    }
+
+    public static boolean isStrEmptyOrNull(String... verifyStrings) {
+        int i = 0;
+        while (i < verifyStrings.length) {
+            if (verifyStrings[i] == null || verifyStrings[i].isEmpty()) {
+                return true;
+            }
+            i++;
+        }
+        return false;
+    }
+
+    private static Optional<String> getExtension(String filename) {
+        return Optional.ofNullable(filename)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
+
+    private static String numberFormat(int number) {
+        DecimalFormat decimalFormat = new DecimalFormat("#.##");
+        decimalFormat.setGroupingUsed(true);
+        decimalFormat.setGroupingSize(3);
+        return decimalFormat.format(number);
     }
 }

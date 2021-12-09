@@ -419,7 +419,7 @@ public class FileFolderLib {
 //        date.addProperty("path", sourceFile.getAbsolutePath());
 //        date.addProperty("createdDate", toDateStringFromFileTime(getFileFolderBasicAttributes(sourceFile).creationTime()));
 
-        return null
+        return null;
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -449,7 +449,7 @@ public class FileFolderLib {
             throw new FileNotFoundException(message);
         }
 
-        return null
+        return null;
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -479,7 +479,7 @@ public class FileFolderLib {
             throw new FileNotFoundException(message);
         }
 
-        return null
+        return null;
     }
 
     @DescriptorKey("Prefix:ART; "
