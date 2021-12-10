@@ -22,15 +22,14 @@ import java.text.SimpleDateFormat;
 import java.text.StringCharacterIterator;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.json.simple.JSONObject;
+
+import javax.management.DescriptorKey;
 
 public class FileSimplify {
     private static final Charset LIB_DEFAULT_CHARSET = StandardCharsets.UTF_8;
@@ -38,14 +37,24 @@ public class FileSimplify {
     private static final String LIB_DEFAULT_DATE_TIME_PATTERN = "dd/MM/yyyy HH:mm:ss";
     private static final String LINE_ENDING = "\n";
 
+    @DescriptorKey("Prefix:ART; "
+            + "Create new folder from path [1], create parent folder if not exists; "
+            + "folderPath - Other - is the path to folder; "
+            + "Pass the test if all folder was created successfully, otherwise the system will give an error message if it failed;")
     public static void createFolder(String path) throws IOException {
         if (isStrEmptyOrNull(path)) {
-            final String message = "one of argument is null or empty";
+            final String message = "argument is null or empty";
             throw new IllegalArgumentException(message);
+        } else {
+            Files.createDirectories(Paths.get(path));
         }
-        Files.createDirectories(Paths.get(path));
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Move file/folder from source path [1] to destination folder path [2], create destination folder if not exist; "
+            + "sourcePath - Other - is path to file/folder with file format; "
+            + "destFolderPath - Other - is destination path to folder; "
+            + "Pass the test if the file/folder is moved successfully, otherwise the system will give an error message if it failed;")
     public static void moveToFolder(String sourcePath, String destFolderPath) throws IOException {
         if (isStrEmptyOrNull(sourcePath, destFolderPath)) {
             final String message = "one of argument is null or empty";
@@ -59,19 +68,70 @@ public class FileSimplify {
         }
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Move file/folder inside of source path [1] to destination folder path [2], create destination folder if not exist; "
+            + "sourcePath - Other - is path to file/folder with file format; "
+            + "destFolderPath - Other - is destination path to folder; "
+            + "Pass the test if the file/folder inside source path is moved successfully, otherwise the system will give an error message if it failed;")
+    public static void moveListFiles(String folderPath, String destFolderPath) throws IOException {
+        if (isStrEmptyOrNull(folderPath, destFolderPath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (!isFolder(folderPath)) {
+            final String message = folderPath + " is not exist or not a folder";
+            throw new FileNotFoundException(message);
+        } else {
+            int i = 0;
+            File[] files = toFile(folderPath).listFiles();
+            List<String> error = new LinkedList<>();
+            while (i < files.length) {
+                try {
+                    moveToFolder(files[i].getAbsolutePath().toString(), destFolderPath);
+                    i++;
+                } catch (Exception e) {
+                    error.add(files[i].getAbsolutePath().toString());
+                    i++;
+                }
+            }
+            if (error.size() > 0) {
+                throw new IOException("cant move these file/folder: " + error.stream().collect(Collectors.joining(", ")));
+            }
+        }
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "copy file/folder from source path [1] to destination folder path [2], create destination folder if not exists; "
+            + "sourcePath - Other - is path to folder/file with file format; "
+            + "destFolderPath - Other - is path to destination folder; "
+            + "Pass the test if file/folder was copied successfully, otherwise the system will give an error message if it failed;")
     public static void copyToFolder(String sourcePath, String destFolderPath) throws IOException {
         if (isStrEmptyOrNull(sourcePath, destFolderPath)) {
             final String message = "one of argument is null or empty";
             throw new IllegalArgumentException(message);
+        } else {
+            FileUtils.copyToDirectory(toFile(sourcePath), toFile(destFolderPath));
         }
-        FileUtils.copyToDirectory(toFile(sourcePath), toFile(destFolderPath));
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Check if file/folder is hidden from source path [1]; "
+            + "sourcePath - Other - is the path to file/folder; "
+            + "Returns true if file/folder is hidden, false otherwise;")
     public static boolean isHidden(String path) throws IOException {
-        return Files.isHidden(Paths.get(path));
+        if (isStrEmptyOrNull(path)) {
+            final String message = "argument is null or empty";
+            throw new IllegalArgumentException(message);
+        } else {
+            return Files.isHidden(Paths.get(path));
+        }
     }
 
-    public static String getListFileAndFolderNames(String folderPath) throws IOException {
+    @DescriptorKey("Prefix:ART; "
+            + "Get list of file/folder name from path to folder [1]; "
+            + "folderPath - Other - is the path to folder; "
+            + "Returns list of file/folder name in json format, with json schema: [{\"name\": String, \"path\": String, \"isFile\": boolean, \"isFolder\": boolean},...];")
+    public static String getListNameFromFolder(String folderPath) throws IOException {
         if (isStrEmptyOrNull(folderPath)) {
             final String message = "argument is null or empty";
             throw new IllegalArgumentException(message);
@@ -96,7 +156,11 @@ public class FileSimplify {
         }
     }
 
-    public static String getListFileNames(String folderPath) throws IOException {
+    @DescriptorKey("Prefix:ART; "
+            + "Get list file name from path to folder [1]; "
+            + "folderPath - Other - is the path to folder; "
+            + "Returns list of file name in json format, with json schema: [{\"name\": String, \"path\": String, \"isFile\": boolean, \"isFolder\": boolean},...];")
+    public static String getListFileNameFromFolder(String folderPath) throws IOException {
         if (isStrEmptyOrNull(folderPath)) {
             final String message = "argument is null or empty";
             throw new IllegalArgumentException(message);
@@ -121,51 +185,10 @@ public class FileSimplify {
         }
     }
 
-    public static void mergeFile(String filePath, String destFilePath) throws IOException {
-        if (isStrEmptyOrNull(filePath, destFilePath)) {
-            final String message = "one of argument is null or empty";
-            throw new IllegalArgumentException(message);
-        }
-        if (!isFile(filePath)) {
-            final String message = filePath + " is not exist, or not an file";
-            throw new FileNotFoundException(message);
-        }
-        appendContent("", destFilePath);// append line separate
-        byte[] bytes = Files.readAllBytes(Paths.get(filePath));
-        Files.write(Paths.get(destFilePath), bytes, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-    }
-
-    public static void appendFile(String content, String filePath) throws IOException {
-        if (content != null && isStrEmptyOrNull(filePath)) {
-            final String message = "one of argument is null or empty";
-            throw new IllegalArgumentException(message);
-        }
-        if (isFolder(filePath)) {
-            final String message = filePath + " is a folder";
-            throw new FileNotFoundException(message);
-        }
-        BufferedWriter bw = createUTF8BufferWriter(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        bw.newLine();
-        bw.append(content);
-        bw.close();
-    }
-
-    private static BufferedWriter createUTF8BufferWriter(String path, OpenOption... options) throws IOException {
-        return Files.newBufferedWriter(Paths.get(path), LIB_DEFAULT_CHARSET, options);
-    }
-
-    public static void overwriteFile(String content, String filePath) throws IOException {
-        if (content != null && isStrEmptyOrNull(filePath)) {
-            final String message = "one of argument is null or empty";
-            throw new IllegalArgumentException(message);
-        }
-        if (isFolder(filePath)) {
-            final String message = filePath + " is a folder";
-            throw new FileNotFoundException(message);
-        }
-        Files.write(Paths.get(filePath), content.getBytes(LIB_DEFAULT_CHARSET));
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "Get list of folder name from path to folder [1]; "
+            + "folderPath - Other - is relative/absolute path to folder; "
+            + "Returns list of folder name in json format, with json schema: [{\"name\": String, \"path\": String, \"isFile\": boolean, \"isFolder\": boolean},...];")
     public static String getListFolderNames(String folderPath) throws IOException {
         if (isStrEmptyOrNull(folderPath)) {
             final String message = "argument is null or empty";
@@ -191,6 +214,74 @@ public class FileSimplify {
         }
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Merge content from file [1] to destination file [2]; "
+            + "filePath - File - is the path to file with file format; "
+            + "destFilePath - File - is path to destination file with file format; "
+            + "Pass the test if file content has been merged successfully, otherwise the system will give an error message if it failed;")
+    public static void mergeFile(String filePath, String destFilePath) throws IOException {
+        if (isStrEmptyOrNull(filePath, destFilePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (!isFile(filePath)) {
+            final String message = filePath + " is not exist, or not an file";
+            throw new FileNotFoundException(message);
+        }
+        appendFile("", destFilePath);
+        byte[] bytes = Files.readAllBytes(Paths.get(filePath));
+        Files.write(Paths.get(destFilePath), bytes, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "Append new content [1] to file [2], will create file if not exist; "
+            + "content - Other - is the new content; "
+            + "filePath - File - is the path to file with file format; "
+            + "Pass the test if the file has been successfully concatenated with the new content, otherwise the system will give an error message if it failed;")
+    public static void appendFile(String content, String filePath) throws IOException {
+        if (content != null && isStrEmptyOrNull(filePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (isFolder(filePath)) {
+            final String message = filePath + " is a folder";
+            throw new FileNotFoundException(message);
+        }
+        BufferedWriter bw = createUTF8BufferWriter(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        bw.newLine();
+        bw.append(content);
+        bw.close();
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "Overwrite content [1] to file [2], create file if not exist; "
+            + "content - Other - is the new content; "
+            + "filePath - File - is the path to file with file format; "
+            + "Pass the test if file has been overwritten successfully with the new content, otherwise the system will give an error message if it failed;")
+    public static void overwriteFile(String content, String filePath) throws IOException {
+        if (content != null && isStrEmptyOrNull(filePath)) {
+            final String message = "one of argument is null or empty";
+            throw new IllegalArgumentException(message);
+        }
+        if (isFolder(filePath)) {
+            final String message = filePath + " is a folder";
+            throw new FileNotFoundException(message);
+        }
+        Files.write(Paths.get(filePath), content.getBytes(LIB_DEFAULT_CHARSET));
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "count total number of rows in file [1]; "
+            + "filePath - File - is the path to file with file format; "
+            + "Pass the test if number of rows has been counted successfully, otherwise the system will give an error message if it failed;")
+    public static long countLine(String filePath) throws IOException {
+        return Files.lines(Paths.get(filePath)).count();
+    }
+
+    @DescriptorKey("Prefix:ART; "
+            + "Read content from file [1]; "
+            + "filePath - File - is the path to file with file format; "
+            + "Returns the file content in plain text;")
     public static String readFileData(String filePath) throws IOException {
         if (isStrEmptyOrNull(filePath)) {
             final String message = "argument is null or empty";
@@ -208,7 +299,11 @@ public class FileSimplify {
         }
     }
 
-    public static String getFileOrFolderSizeReadable(String sourcePath) throws FileNotFoundException {
+    @DescriptorKey("Prefix:ART; "
+            + "Get file/folder readable size from source path [1]; "
+            + "sourcePath - Other - is the path to folder/file with file format; "
+            + "Returns the size of file/folder in readable text, exp: 5 Kib, 5 Mib, 5 Gib,...;")
+    public static String getFileOrFolderReadableSize(String sourcePath) throws Exception {
         if (isStrEmptyOrNull(sourcePath)) {
             final String message = "argument is null or empty";
             throw new IllegalArgumentException(message);
@@ -221,7 +316,12 @@ public class FileSimplify {
         return humanReadableByteCountBin(sizeByte);
     }
 
-    public static String getFileOrFolderAttributes(String sourcePath) throws IOException {
+    @DescriptorKey("Prefix:ART; "
+            + "Get file/folder attributes detail from source path [1]; "
+            + "sourcePath - Other - is relative/absolute path to folder/file with file format; "
+            + "Returns file/folder attributes in json format, with json schema: "
+            + "{\"name\": String, \"path\": String, \"sizeByte\": Long, \"sizeReadable\": String, \"createDateTime\": String, \"lastModifiedDateTime\": String, \"isFile\": boolean, \"isFolder\": boolean, \"isOther\": boolean, \"isSymbolicLink\": boolean, \"isHidden\": boolean };")
+    public static String getAttributes(String sourcePath) throws IOException {
         if (isStrEmptyOrNull(sourcePath)) {
             final String message = "argument is null or empty";
             throw new IllegalArgumentException(message);
@@ -254,6 +354,11 @@ public class FileSimplify {
         }
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "List file and folder attributes detail from folder [1]; "
+            + "folderPath - Other - is the path to folder;"
+            + "Returns list of file/folder attributes in json format, with json schema: "
+            + "[{\"name\": String, \"path\": String, \"sizeByte\": Long, \"sizeReadable\": String, \"createDateTime\": String, \"lastModifiedDateTime\": String, \"isFile\": boolean, \"isFolder\": boolean, \"isOther\": boolean, \"isSymbolicLink\": boolean, \"isHidden\": boolean }];")
     public static String getListFileAndFolderAttributes(String folderPath) throws IOException {
         if (isStrEmptyOrNull(folderPath)) {
             final String message = "argument is null or empty";
@@ -278,7 +383,11 @@ public class FileSimplify {
         }
     }
 
-    public static String getFileOrFolderCreationDate(String sourcePath) throws IOException {
+    @DescriptorKey("Prefix:ART; "
+            + "Get file/folder created date time from source path [1]; "
+            + "sourcePath - Other - is the path to folder/file with file format; "
+            + "Returns file/folder creation date in plain text, format: dd/MM/yyyy hh:mm:ss")
+    public static String getCreationDate(String sourcePath) throws IOException {
         if (isStrEmptyOrNull(sourcePath)) {
             final String message = "argument is null or empty";
             throw new IllegalArgumentException(message);
@@ -290,6 +399,10 @@ public class FileSimplify {
         return toDateStringFromFileTime(getFileFolderBasicAttributes(toFile(sourcePath)).creationTime());
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Get file/folder last modified date time from source path [1]; "
+            + "sourcePath - Other - is the path to folder/file with file format; "
+            + "Returns file/folder last modified date in plain text, format: dd/MM/yyyy hh:mm:ss")
     public static String getFileFolderLastModifiedDate(String sourcePath) throws IOException {
         if (isStrEmptyOrNull(sourcePath)) {
             final String message = "argument is null or empty";
@@ -302,6 +415,10 @@ public class FileSimplify {
         return toDateStringFromFileTime(getFileFolderBasicAttributes(toFile(sourcePath)).lastModifiedTime());
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Get file/folder last accessed date time from source path [1]; "
+            + "sourcePath - Other - is the path to folder/file with file format; "
+            + "Returns file/folder last accessed date in plain text, format: dd/MM/yyyy hh:mm:ss")
     public static String getFileFolderLastAccessDate(String sourcePath) throws IOException {
         if (isStrEmptyOrNull(sourcePath)) {
             final String message = "argument is null or empty";
@@ -314,6 +431,11 @@ public class FileSimplify {
         return toDateStringFromFileTime(getFileFolderBasicAttributes(toFile(sourcePath)).lastAccessTime());
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Get line at row index [1] from path to file [2]; "
+            + "index - Other - is row index (number); "
+            + "filePath - File - is fileName/absolute path to file with file format; "
+            + "Returns line content at row index in plain text;")
     public static String getLineAtRowIndex(Integer rowIndex, String filePath) throws IOException, IndexOutOfBoundsException {
         if (rowIndex != null && isStrEmptyOrNull(filePath)) {
             final String message = "argument is null or empty";
@@ -332,6 +454,11 @@ public class FileSimplify {
         }
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Get all line match with content [1] from file [2], case sensitive; "
+            + "content - Other - is lookup content; "
+            + "filePath - File - is the path to file with file format; "
+            + "Returns all the line match with search content in plain text;")
     public static String getAllLineMatchContent(String content, String filePath) throws IOException {
         if (content != null && isStrEmptyOrNull(filePath)) {
             final String message = "one of argument is null or empty";
@@ -346,42 +473,38 @@ public class FileSimplify {
         }
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Get all line match with content [1] from file [2], case sensitive; "
+            + "content - Other - is lookup content; "
+            + "filePath - File - is the path to file with file format; "
+            + "Returns all the line match with search content in json format, json schema: {\\\"line\\\": String, \\\"lineIndex\\\": Integer};;")
     public static String getAllLineMatchContentJson(String content, String filePath) throws IOException {
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
             throw new FileNotFoundException(message);
         } else {
             List<String> lines = listFileLine(filePath);
-            List<JSONObject> rs = new ArrayList<>();
+            List<JSONObject> result = new ArrayList<>();
             IntStream.range(0, lines.size()).filter(index -> lines.get(index).contains(content)).forEach(index -> {
                 JSONObject lineObj = new JSONObject();
                 lineObj.put("line", lines.get(index));
                 lineObj.put("lineIndex", numberFormat(index + 1));
-                rs.add(lineObj);
+                result.add(lineObj);
             });
             try {
-                return writeValueAsJsonStr(rs, LIB_DEFAULT_DATE_TIME_PATTERN);
+                return writeValueAsJsonStr(result, LIB_DEFAULT_DATE_TIME_PATTERN);
             } catch (OutOfMemoryError error) {
                 throw new IOException("Data is too large to write as String");
             }
         }
     }
 
-    private static ObjectWriter objWriterDateTimeFormat(String format) {
-        return new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .setDateFormat(new SimpleDateFormat(format))// write date data with datetime format
-                .writerWithDefaultPrettyPrinter();
-    }
-
-    private static String writeValueAsJsonStr(Object value, String dateFormat) throws JsonProcessingException {
-        return objWriterDateTimeFormat(dateFormat).writeValueAsString(value);
-    }
-
-    private static String writeValueAsJsonStr(Object value) throws JsonProcessingException {
-        return objWriterDateTimeFormat(LIB_DEFAULT_DATE_TIME_PATTERN).writeValueAsString(value);
-    }
-
+    @DescriptorKey("Prefix:ART; "
+            + "Replace content [1] with new content [2] from file [3], case sensitive; "
+            + "oldContent - Other - is search content; "
+            + "newContent - Other - is replace content; "
+            + "filePath - File - is the path to file with file format; "
+            + "Pass the test if the file has been successfully replaced with the new content, otherwise the system will give an error message if it failed;")
     public static void replaceAllFileContent(String searchContent, String replaceContent, String filePath) throws IOException {
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
@@ -394,6 +517,10 @@ public class FileSimplify {
         }
     }
 
+    @DescriptorKey("Prefix:ART; "
+            + "Delete file/folder from source path [1]; "
+            + "sourcePath - Other - is the path to folder/file with file format; "
+            + "Pass the test if the file/folder was successfully deleted, otherwise the system will give an error message if it failed;")
     public static void deleteFileOrFolder(String sourcePath) throws IOException {
         File sourceFile = toFile(sourcePath);
         if (sourceFile.getAbsolutePath().equals(getUsersProjectRootDirectory())) {
@@ -525,5 +652,24 @@ public class FileSimplify {
         decimalFormat.setGroupingUsed(true);
         decimalFormat.setGroupingSize(3);
         return decimalFormat.format(number);
+    }
+
+    private static BufferedWriter createUTF8BufferWriter(String path, OpenOption... options) throws IOException {
+        return Files.newBufferedWriter(Paths.get(path), LIB_DEFAULT_CHARSET, options);
+    }
+
+    private static ObjectWriter objWriterDateTimeFormat(String format) {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .setDateFormat(new SimpleDateFormat(format))// write date data with datetime format
+                .writerWithDefaultPrettyPrinter();
+    }
+
+    private static String writeValueAsJsonStr(Object value, String dateFormat) throws JsonProcessingException {
+        return objWriterDateTimeFormat(dateFormat).writeValueAsString(value);
+    }
+
+    private static String writeValueAsJsonStr(Object value) throws JsonProcessingException {
+        return objWriterDateTimeFormat(LIB_DEFAULT_DATE_TIME_PATTERN).writeValueAsString(value);
     }
 }
