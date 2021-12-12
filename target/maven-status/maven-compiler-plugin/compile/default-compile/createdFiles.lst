@@ -1,0 +1,15 @@
+com\fpt\service\FileFolderCrudService.class
+com\fpt\enumType\UsedClazzEnum.class
+com\fpt\app\ConsoleApp.class
+com\fpt\folderHandleLib\dto\FileFolderAttributesDto.class
+com\fpt\folderHandleLib\dto\FileFolderNameDto.class
+com\fpt\app\RunCmd.class
+com\fpt\Main.class
+com\fpt\service\FileFolderCrudServiceImpl.class
+com\fpt\app\MethodSignature.class
+com\fpt\enumType\AppFunctionsEnum.class
+com\fpt\folderHandleLib\Action.class
+com\fpt\app\Menu.class
+com\fpt\folderHandleLib\FileFolderLib.class
+com\fpt\enumType\AppConfig.class
+com\fpt\folderHandleLib\FileSimplify.class

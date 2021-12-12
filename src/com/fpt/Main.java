@@ -1,7 +1,7 @@
 package com.fpt;
 
-import com.fpt.app.ConsoleApp;
-import com.fpt.enumType.AppConfig;
+//import com.fpt.app.ConsoleApp;
+//import com.fpt.enumType.AppConfig;
 import com.fpt.folderHandleLib.FileSimplify;
 
 import java.nio.file.*;
@@ -15,7 +15,7 @@ public class Main {
         String test = "D:\\record\\New folder\\New folder";
 //      String a  =  FileSimplify.getListFileAndFolderNames(dstPath.toString());
 
-          FileSimplify.moveListFiles("D:\\record\\cc\\aa.txt","D:\\record");
+          FileSimplify.mergeFile("D:\\TASK_NOTE\\a.txt","D:\\TASK_NOTE\\SQL_MAPPING_NPL_TO_SQL\\New folder\\xx.txt");
 //        System.out.println(Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS));
 //        ConsoleApp consoleApp = new ConsoleApp("\n" + AppConfig.APP_TITLE.getConfigValue());
 //        consoleApp.start();

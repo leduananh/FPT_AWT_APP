@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.io.FileUtils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -219,18 +216,21 @@ public class FileSimplify {
             + "filePath - File - is the path to file with file format; "
             + "destFilePath - File - is path to destination file with file format; "
             + "Pass the test if file content has been merged successfully, otherwise the system will give an error message if it failed;")
-    public static void mergeFile(String filePath, String destFilePath) throws IOException {
+    public static void mergeFile(String filePath, String destFilePath, OpenOption... options) throws IOException {
         if (isStrEmptyOrNull(filePath, destFilePath)) {
             final String message = "one of argument is null or empty";
             throw new IllegalArgumentException(message);
         }
         if (!isFile(filePath)) {
             final String message = filePath + " is not exist, or not an file";
-            throw new FileNotFoundException(message);
+            throw new IllegalArgumentException(message);
         }
-        appendFile("", destFilePath);
+        if (isFolder(destFilePath)) {
+            final String message = filePath + " is an folder";
+            throw new IllegalArgumentException(message);
+        }
         byte[] bytes = Files.readAllBytes(Paths.get(filePath));
-        Files.write(Paths.get(destFilePath), bytes, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        writeByteFile(bytes, destFilePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -247,10 +247,7 @@ public class FileSimplify {
             final String message = filePath + " is a folder";
             throw new FileNotFoundException(message);
         }
-        BufferedWriter bw = createUTF8BufferWriter(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        bw.newLine();
-        bw.append(content);
-        bw.close();
+        writeByteFile(content.getBytes(LIB_DEFAULT_CHARSET), filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
     @DescriptorKey("Prefix:ART; "
@@ -267,7 +264,22 @@ public class FileSimplify {
             final String message = filePath + " is a folder";
             throw new FileNotFoundException(message);
         }
-        Files.write(Paths.get(filePath), content.getBytes(LIB_DEFAULT_CHARSET));
+        writeByteFile(content.getBytes(LIB_DEFAULT_CHARSET),filePath);
+    }
+
+    private static void writeByteFile(byte[] bytes, String to, OpenOption... options) throws IOException {
+        Path destPath = Paths.get(to);
+        try (OutputStream out = Files.newOutputStream(destPath, options)) {
+            int len = bytes.length;
+            int rem = len;
+            if (destPath.toFile().isFile() && countLine(to) > 0) out.write("\n".getBytes(StandardCharsets.UTF_8));
+            while (rem > 0) {
+                int n = Math.min(rem, 8192);
+                out.write(bytes, (len - rem), n);
+                rem -= n;
+            }
+            out.flush();
+        }
     }
 
     @DescriptorKey("Prefix:ART; "
